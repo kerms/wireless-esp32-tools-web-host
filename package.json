@@ -4,11 +4,11 @@
   "private": true,
   "type": "module",
   "scripts": {
-    "dev": "vite",
+    "dev": ". ./set_env.sh && vite",
     "build": "run-p type-check \"build-only {@}\" --",
-    "preview": "vite preview",
-    "build-only": "vite build",
-    "build:dev": "vite build --mode development",
+    "preview": ". ./set_env.sh && vite preview",
+    "build-only": ". ./set_env.sh && vite build",
+    "build:dev": ". ./set_env.sh && vite build --mode development",
     "type-check": "vue-tsc --build --force",
     "lint": "eslint . --ext .vue,.js,.jsx,.cjs,.mjs,.ts,.tsx,.cts,.mts --fix --ignore-path .gitignore",
     "format": "prettier --write src/"

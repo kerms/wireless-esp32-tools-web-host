@@ -1,6 +1,6 @@
 <script setup lang="ts">
-const version = __APP_VERSION__;
-const compileTime = __BUILD_TIME__;
+const version = import.meta.env.VITE_APP_GIT_TAG;
+const compileTime = import.meta.env.VITE_APP_LAST_COMMIT;
 </script>
 
 <template>
