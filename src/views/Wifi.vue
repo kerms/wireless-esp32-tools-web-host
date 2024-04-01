@@ -196,7 +196,7 @@ import {
   type WifiInfo,
   type WifiList,
   WifiModuleID,
-  wifi_ap_get_info
+  wifi_ap_get_info, wifi_connect_to
 } from "@/api/apiWifi";
 import type {FormInstance} from "element-plus";
 
@@ -233,6 +233,7 @@ let wifiApInfo = reactive<WifiInfo>({...defWifiInfo});
 
 let scanning = ref(false);
 let scan_cb: any;
+let connectBtnClicked = 0;
 let options: Array<WifiInfo> = [];
 const scanText = computed(() => {
   return scanning.value ? "扫描中" : "扫描";
@@ -259,6 +260,10 @@ const onClientMsg = (msg: ServerMsg) => {
     case WifiCmd.WIFI_API_JSON_STA_GET_AP_INFO: {
       const info = msg.data as WifiInfo;
       Object.assign(wifiStaApInfo, info);
+      if (connectBtnClicked) {
+        connectBtnClicked = 0;
+        globalNotifyRightSide(wifiStaApInfo.ssid + " 连接成功", "success");
+      }
       break;
     }
     case WifiCmd.WIFI_API_JSON_CONNECT:
@@ -324,6 +329,10 @@ function onConnectClick() {
     return;
   }
   console.log(ssidValidateForm.wifiSsid, ssidValidateForm.password);
+  if (ssidValidateForm.wifiSsid !== "") {
+    wifi_connect_to(ssidValidateForm.wifiSsid, ssidValidateForm.password);
+    connectBtnClicked = 1;
+  }
 }
 
 onMounted(() => {
