@@ -1,8 +1,11 @@
+import type {ControlMsg, ServerMsg} from "@/api";
+
 declare const self: SharedWorkerGlobalScope;
 
 import {WebsocketWrapper} from "@/composables/websocket/websocketWrapper";
-import type {ControlMsg, ServerMsg} from "@/composables/broadcastChannelDef";
-import {ControlEvent, ControlMsgType, toClient, toClientCtrl, toServer} from "@/composables/broadcastChannelDef";
+import {toClient, toClientCtrl, toServer} from "@/composables/broadcastChannelDef";
+import {ControlEvent, ControlMsgType} from "@/api";
+import {isDevMode} from "@/composables/buildMode";
 
 const websocket = new WebsocketWrapper();
 let host = "";
@@ -19,7 +22,9 @@ function msgBroadcast(msg: ServerMsg) {
 self.onconnect = function(event) {
     const port = event.ports[0];
     port.onmessage = function (e: MessageEvent<ControlMsg>) {
-        console.log('Received message in SharedWorker:', e.data);
+        if (isDevMode()) {
+            console.log('Received message in SharedWorker:', e.data);
+        }
         if (e.data.type === ControlMsgType.WS_SET_HOST) {
             if (host === "" && e.data.data !== "") {
                 host = e.data.data;

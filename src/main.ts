@@ -1,4 +1,9 @@
 import '@/assets/tailwind.css'
+import '@/assets/toggle_skewed.css'
+import '@/assets/page.css'
+import '@/assets/navigation.css'
+import 'element-plus/dist/index.css';
+
 
 import { createApp } from 'vue'
 import { createPinia } from 'pinia'
@@ -10,7 +15,7 @@ import router from './router'
 const app = createApp(App)
 
 app.use(createPinia())
-app.use(router)
 app.use(i18n);
+app.use(router)
 
 app.mount('#app')

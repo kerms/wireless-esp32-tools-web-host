@@ -1,9 +1,9 @@
-import MyWorker from '@/composables/websocket/ws.sharedworker?sharedworker&inline'
+import MyWorker from '@/composables/websocket/ws.sharedworker?sharedworker'
 import {WebsocketWrapper} from "@/composables/websocket/websocketWrapper";
-import type {ControlMsg, ServerMsg} from "@/composables/broadcastChannelDef";
-import {ControlMsgType, toClient, toClientCtrl} from "@/composables/broadcastChannelDef";
-
-const toServer = new BroadcastChannel("toServer");
+import {toClient, toClientCtrl, toServer} from "@/composables/broadcastChannelDef";
+import type {ControlMsg, ServerMsg} from "@/api";
+import {ControlEvent, ControlMsgType} from "@/api";
+import {isDevMode} from "@/composables/buildMode";
 
 export interface IWebsocketService {
     init(host: string,
@@ -29,13 +29,18 @@ class WebsocketShared implements IWebsocketService{
 
     public static getInstance(): IWebsocketService {
         if (!WebsocketShared.instance) {
+            if (isDevMode()) {
+                console.log("New Shared Worker");
+            }
             WebsocketShared.instance = new WebsocketShared();
         }
         return WebsocketShared.instance;
     }
 
     private constructor() {
-        console.log("Shared Websocket init")
+        if (isDevMode()) {
+            console.log("Shared Websocket init");
+        }
         this.msgCallback = () => {}
         this.ctrlCallback = () => {}
         this.messageEventProxy = this.messageEventProxy.bind(this);
@@ -44,14 +49,15 @@ class WebsocketShared implements IWebsocketService{
     }
 
     init(host: string, msgCallback: (msg: ServerMsg) => any, ctrlCallback: (msg: ControlMsg) => any): void {
-        console.log("webworker init")
+        if (isDevMode()) {
+            console.log("webworker init");
+        }
         toClient.removeEventListener("message", this.messageEventProxy);
         toClientCtrl.removeEventListener("message", this.controlEventProxy);
         this.msgCallback = msgCallback;
         this.ctrlCallback = ctrlCallback;
         toClient.addEventListener("message", this.messageEventProxy);
         toClientCtrl.addEventListener("message", this.controlEventProxy);
-        // this.worker.port.onmessage = this.controlEventProxy;
         this.worker.port.postMessage({type: ControlMsgType.WS_SET_HOST, data: host} as ControlMsg)
     }
 
@@ -60,9 +66,11 @@ class WebsocketShared implements IWebsocketService{
         toClientCtrl.removeEventListener("message", this.controlEventProxy);
     }
 
+    reload(): void {
+        // this.worker.terminate();
+    }
 
     send(msg: ServerMsg): void {
-        console.log("Websocket Service send (not really)", msg)
         toServer.postMessage(msg);
     }
 
@@ -71,6 +79,7 @@ class WebsocketShared implements IWebsocketService{
     }
 
     controlEventProxy(ev: MessageEvent<ControlMsg>) {
+
         this.ctrlCallback(ev.data);
     }
 }
@@ -93,8 +102,9 @@ class WebsocketClassic implements IWebsocketService{
     }
 
     init(host: string, msgCallback: (ev: ServerMsg) => any, ctrlCallback: (msg: ControlMsg) => any): void {
-        console.log("Websocket Service INIT called", WebsocketClassic.count);
-
+        if (isDevMode()) {
+            console.log("Websocket Service INIT called", WebsocketClassic.count);
+        }
         this.socket.init(host, msgCallback, ctrlCallback);
     }
 

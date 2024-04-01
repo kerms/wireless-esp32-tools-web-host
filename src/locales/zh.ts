@@ -1,17 +1,20 @@
 export default {
-    DISCONNECTED: "未连接",
-    CONNECTED: "已连接",
-    CONNECTING: "连接中",
+    disconnected: "未连接",
+    connected: "已连接",
+    connecting: "连接中",
 
-    WS: {
-        DISCONNECTED: "未连接",
-        CONNECTED: "已连接",
-        CONNECTING: "连接中",
+    ws: {
+        disconnected: "未连接",
+        connected: "已连接",
+        connecting: "连接中",
     },
 
-    PAGE: {
-        HOME: "主页",
-        ABOUT: "关于",
-        FEEDBACK: "反馈",
+    page: {
+        home: "主页",
+        wifi: "Wi-Fi",
+        about: "关于",
+        uart: "UART透传",
+        feedback: "反馈",
+        close: "关闭",
     },
 }

@@ -1,5 +1,6 @@
 import {defineStore} from "pinia";
-import {ControlEvent} from "@/composables/broadcastChannelDef";
+
+import {ControlEvent} from "@/api";
 
 export const useWsStore = defineStore('websocket', {
     state: () => {

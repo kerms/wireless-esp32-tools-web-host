@@ -1,0 +1,16 @@
+.text-layout {
+    @apply m-auto max-w-2xl min-w-min px-2
+}
+
+.page-title {
+    @apply text-center my-6 text-4xl font-bold tracking-tight md:text-5xl lg:text-6xl
+}
+
+.router-link {
+    @apply text-sm text-gray-500 hover:text-gray-500
+}
+
+.router-link-active {
+    @apply text-blue-600 font-bold;
+    cursor: default;
+}

@@ -1,19 +1,11 @@
 <template>
-  <h2>Home Page</h2>
-    <!-- Your home page content goes here -->
-    <h2>Home Page</h2>
-  <nav>
-<!--    <RouterLink to="/">Home</RouterLink>-->
-<!--    <RouterLink to="/wifi">Wifi</RouterLink>-->
-<!--    <RouterLink to="/about">About</RouterLink>-->
-<!--    <RouterLink to="/test">Test</RouterLink>-->
-<!--    <RouterLink to="/home">home</RouterLink>-->
-  </nav>
+  <div class="text-layout">
+      <h2 class="page-title">主页</h2>
+      <p>空空如也，暂不知道放什么。</p>
+  </div>
 </template>
 
 <script setup lang="ts">
-
-document.title = "Home";
 
 
 </script>

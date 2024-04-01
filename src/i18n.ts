@@ -3,9 +3,7 @@ import zh from '@/locales/zh'
 import en from '@/locales/en'
 
 // const locale = localStorage.getItem('lang') || 'zh';
-const locale = 'zh';
-
-console.log("langggggg:", locale);
+export const locale = 'zh';
 
 const i18n = createI18n({
     globalInjection: true,

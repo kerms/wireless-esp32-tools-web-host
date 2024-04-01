@@ -1,5 +1,7 @@
-import type {ServerMsg, ControlMsg} from "@/composables/broadcastChannelDef";
-import {ControlEvent, ControlMsgType} from "@/composables/broadcastChannelDef";
+
+import type {ApiJsonMsg, ControlMsg, ServerMsg} from "@/api";
+import {ControlEvent, ControlMsgType} from "@/api";
+import {isDevMode} from "@/composables/buildMode";
 
 
 interface IWebsocket {
@@ -21,7 +23,7 @@ class WebsocketDummy implements IWebsocket {
 }
 
 class OneTimeWebsocket implements IWebsocket {
-    private readonly heartBeatTimeout: number = 2;
+    private readonly heartBeatTimeout: number = 1;
     private readonly host: string;
     private readonly intervalId: number;
     private readonly msgCallback: (ev: ServerMsg) => any;
@@ -30,6 +32,8 @@ class OneTimeWebsocket implements IWebsocket {
     private socket: WebSocket;
     private heartBeatTimeCount: number;
     private stoped: boolean;
+    private cleared: boolean;
+    private hasBeenConnected: boolean;
 
     constructor(host: string,
                 msgCallback: (ev: ServerMsg) => any,
@@ -38,6 +42,8 @@ class OneTimeWebsocket implements IWebsocket {
     ) {
         this.host = host;
         this.stoped = false;
+        this.cleared = false;
+        this.hasBeenConnected = false;
         this.msgCallback = msgCallback;
         this.ctrlCallback = ctrlCallback;
         this.closeCallback = closeCallback;
@@ -51,8 +57,13 @@ class OneTimeWebsocket implements IWebsocket {
             if (this.heartBeatTimeCount > this.heartBeatTimeout) {
                 /* did not receive packet "heartBeatTimeout" times,
                  * connection may be lost: close the socket */
-                this.socket.close();
-                console.log("interval: ", this.heartBeatTimeCount, "state: ", this.socket.readyState);
+                if (this.socket.readyState === this.socket.OPEN) {
+                    this.close();
+                    this.clear();
+                }
+                if (isDevMode()) {
+                    console.log("interval: ", this.heartBeatTimeCount, "state: ", this.socket.readyState);
+                }
             }
 
             this.heartBeatTimeCount++;
@@ -72,48 +83,47 @@ class OneTimeWebsocket implements IWebsocket {
                 data: {},
                 type: "json",
             }
-            this.msgCallback(msg);
             if (typeof ev.data === "string") {
                 try {
-                    msg.data = JSON.parse(ev.data);
-                    this.msgCallback(msg);
+                    msg.data = JSON.parse(ev.data) as ApiJsonMsg;
+                    if ((msg.data as ApiJsonMsg).cmd === undefined ||
+                        (msg.data as ApiJsonMsg).module === undefined
+                    ){
+                        console.log("Server msg has no cmd or module");
+                        return;
+                    }
                 } catch (e) {
+                    console.log(e);
                     return;
                 }
             } else {
+                msg.type = "binary";
+                msg.data = ev.data;
                 console.log(typeof ev.data);
             }
+            this.msgCallback(msg);
         }
 
         this.socket.onclose = () => {
-            console.log('WebSocket Disconnected');
-
-            clearInterval(this.intervalId);
             this.socket.onclose = null
             this.socket.onopen = null
             this.socket.onerror = null
             this.socket.onmessage = null;
-
-            const msg: ControlMsg = {
-                type: ControlMsgType.WS_EVENT,
-                data: ControlEvent.DISCONNECTED,
-            }
-            this.ctrlCallback(msg);
-            this.closeCallback();
+            this.clear();
         };
 
         this.socket.onerror = (error) => {
-            console.error('WebSocket Error', error);
-            this.socket.close();
+            this.close();
         };
 
         this.socket.onopen = ev => {
-            console.log('WebSocket Connected');
+            // console.log('WebSocket Connected');
             if (this.stoped) {
                 this.close();
                 return;
             }
             this.heartBeatTimeCount = 0;
+            this.hasBeenConnected = true;
             const msg: ControlMsg = {
                 type: ControlMsgType.WS_EVENT,
                 data: ControlEvent.CONNECTED,
@@ -144,6 +154,21 @@ class OneTimeWebsocket implements IWebsocket {
         } else if (msg.type === "json") {
             this.socket.send(JSON.stringify(msg.data));
         }
+    }
+
+    clear() {
+        if (this.cleared) {
+            return;
+        }
+        this.cleared = true;
+        clearInterval(this.intervalId);
+
+        const msg: ControlMsg = {
+            type: ControlMsgType.WS_EVENT,
+            data: ControlEvent.DISCONNECTED,
+        }
+        this.ctrlCallback(msg);
+        this.closeCallback();
     }
 }
 
@@ -185,7 +210,6 @@ export class WebsocketWrapper {
         this.msgCallback = msgCallback;
         this.ctrlCallback = ctrlCallback;
         this.socket = new OneTimeWebsocket(host, this.msgCallback, this.ctrlCallback, this.closeCallback);
-
     }
 
     private closeCallback() {
@@ -194,7 +218,7 @@ export class WebsocketWrapper {
         }
         this.timeoutId = setTimeout(() =>
                 this.newConnection(this.host, this.msgCallback, this.ctrlCallback),
-            2000);
+            1000);
     }
 
     deinit() {
@@ -204,7 +228,6 @@ export class WebsocketWrapper {
     }
 
     send(msg: ServerMsg) {
-        console.log('WebSocket send: not ready', msg);
-        // this.socket.send(msg)
+        this.socket.send(msg)
     }
 }
