@@ -1,4 +1,5 @@
 import type {ApiJsonMsg, ControlMsg, ServerMsg} from "@/api";
+import {isDevMode} from "@/composables/buildMode";
 
 export interface IModuleCallback {
     ctrlCallback: (msg: ControlMsg) => void;
@@ -27,10 +28,14 @@ export function routeModuleServerMsg(msg: ServerMsg) {
         if (moduleHandler) {
             moduleHandler.serverMsgCallback(msg);
         } else {
-            console.log("routeModuleServerMsg module not loaded", module);
+            if (isDevMode()) {
+                console.log("routeModuleServerMsg module not loaded", module);
+            }
         }
     } else {
-        console.log("routeModuleServerMsg ignored:", msg);
+        if (isDevMode()) {
+            console.log("routeModuleServerMsg ignored:", msg);
+        }
     }
 }
 

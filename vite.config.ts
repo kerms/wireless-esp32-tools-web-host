@@ -7,7 +7,6 @@ import vue from '@vitejs/plugin-vue'
 import svgLoader from "vite-svg-loader";
 import cssInjectedByJsPlugin from "vite-plugin-css-injected-by-js";
 import { viteSingleFile } from 'vite-plugin-singlefile'
-import packageJson from "./package.json"
 
 // https://vitejs.dev/config/
 export default defineConfig({
@@ -24,8 +23,7 @@ export default defineConfig({
     viteSingleFile(),
   ],
   define: {
-    '__APP_VERSION__': JSON.stringify(packageJson.version),
-    '__BUILD_TIME__': JSON.stringify(new Date().toISOString()),
+
   },
   resolve: {
     alias: {

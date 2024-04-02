@@ -29,8 +29,8 @@
     <!--  <a class="md:ml-auto md:mr-3"></a>-->
     <div class="flex">
       <el-button @click="stateMenuOpen=true" :type="wsColor" size="large" class="transition duration-1000">
-        <InlineSvg v-show="wsColor!=='success'" name="wifi-exclamation" class="mr-2" width="20"></InlineSvg>
-        <InlineSvg v-show="wsColor==='success'" name="wifi-3" class="mr-2" width="20"></InlineSvg>
+        <InlineSvg v-show="wsColor!=='success'" name="link-off" class="mr-2" width="20"></InlineSvg>
+        <InlineSvg v-show="wsColor==='success'" name="link" class="mr-2" width="20"></InlineSvg>
         {{ wsState }}
       </el-button>
     </div>

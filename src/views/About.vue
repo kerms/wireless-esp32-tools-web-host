@@ -6,11 +6,11 @@ const compileTime = import.meta.env.VITE_APP_LAST_COMMIT;
 <template>
   <div class="text-layout">
     <el-divider></el-divider>
-    <el-divider>关于上位机</el-divider>
+    <el-divider>关于网页版上位机</el-divider>
     <el-divider></el-divider>
 
     <el-descriptions border :column="1" class="mt-5 description-style">
-      <el-descriptions-item label="上位机版本">{{version}}</el-descriptions-item>
+      <el-descriptions-item label="版本">{{version}}</el-descriptions-item>
       <el-descriptions-item label="发布时间">{{compileTime}}</el-descriptions-item>
       <el-descriptions-item label="许可证">MIT</el-descriptions-item>
     </el-descriptions>

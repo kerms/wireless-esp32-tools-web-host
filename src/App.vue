@@ -38,10 +38,9 @@ let websocketService: IWebsocketService;
 onMounted(() => {
 
   logHelloMessage();
-
   let host = "";
   if (isDevMode()) {
-    host = "192.168.43.61";
+    host = import.meta.env.VITE_DEVICE_HOST_NAME;
   } else {
     host = window.location.host
   }

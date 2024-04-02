@@ -147,8 +147,9 @@ class OneTimeWebsocket implements IWebsocket {
         if (this.socket.readyState !== WebSocket.OPEN) {
             return;
         }
-
-        console.log('WebSocket proxies data ', msg);
+        if (isDevMode()) {
+            console.log('WebSocket proxies data ', msg);
+        }
         if (msg.type === "binary") {
             // this.socket.send(msg.data);
         } else if (msg.type === "json") {

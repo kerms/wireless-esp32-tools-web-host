@@ -328,7 +328,6 @@ function onConnectClick() {
     globalNotify("调试器未连接", 'error');
     return;
   }
-  console.log(ssidValidateForm.wifiSsid, ssidValidateForm.password);
   if (ssidValidateForm.wifiSsid !== "") {
     wifi_connect_to(ssidValidateForm.wifiSsid, ssidValidateForm.password);
     connectBtnClicked = 1;
