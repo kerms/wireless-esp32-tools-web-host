@@ -28,7 +28,7 @@
 
     <!--  <a class="md:ml-auto md:mr-3"></a>-->
     <div class="flex">
-      <el-button @click="stateMenuOpen=true" :type="wsColor" size="large" class="transition duration-1000">
+      <el-button :type="wsColor" size="large" class="transition duration-1000">
         <InlineSvg v-show="wsColor!=='success'" name="link-off" class="mr-2" width="20"></InlineSvg>
         <InlineSvg v-show="wsColor==='success'" name="link" class="mr-2" width="20"></InlineSvg>
         {{ wsState }}
@@ -117,12 +117,17 @@ const wsState = computed(() => {
   return translate(wsStore.state);
 });
 
-const menuItems = ([
-  {
+type Item = {
+  name: string;
+  href: string;
+  class?: string;
+};
+
+const menuItems: Item[] = ([
+/*  {
     name: translate("page.home"),
     href: "/",
-
-  }, {
+  }, */{
     name: translate("page.wifi"),
     href: "/wifi",
   }, {
@@ -131,11 +136,11 @@ const menuItems = ([
   }, {
     name: translate("page.feedback"),
     href: "/feedback",
-  }, {
+  },/* {
     name: translate("page.uart"),
     href: "/uart",
     class: "todo-menu-item",
-  },
+  },*/
 ]);
 
 </script>
@@ -146,14 +151,18 @@ const menuItems = ([
   border: solid 1px;
 }*/
 
-/* drawer */
-.custom-drawer :deep(.el-drawer) {
-  transition: all 0.1s; /* Custom duration*/
-}
 
 /* drawer overlay */
-.custom-drawer.open :deep(.el-overlay) {
+.custom-drawer :deep(.el-overlay) {
   transition: all 0s; /* Custom duration*/
+}
+
+.custom-drawer :deep(.el-drawer) {
+  transition: all 0s; /* Custom duration*/
+}
+
+.custom-drawer.open :deep(.el-drawer) {
+  transition: all 0.05s; /* Custom duration*/
 }
 
 .custom-drawer :deep(.el-drawer__body) {

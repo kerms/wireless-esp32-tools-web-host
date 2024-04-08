@@ -4,6 +4,7 @@ import Wifi from '@/views/Wifi.vue'
 import Feedback from '@/views/Feedback.vue'
 import About from '@/views/About.vue'
 import Uart from '@/views/Uart.vue'
+import Page404 from '@/views/404.vue'
 import {translate} from "@/locales";
 
 
@@ -14,7 +15,8 @@ const router = createRouter({
             path: '/',
             name: 'home',
             meta: {title: translate("page.home")},
-            component: Home
+            // component: Wifi
+            redirect: () => '/wifi',
         }, {
             path: '/home:ext(.*)',
             meta: {title: translate("page.home")},
@@ -36,6 +38,10 @@ const router = createRouter({
             meta: {title: translate('page.feedback')},
             name: 'feedback',
             component: Feedback,
+        },   {
+            path: '/:catchAll(.*)', // This will match all paths that aren't matched by above routes
+            name: 'NotFound',
+            component: Page404,
         },
     ]
 })
