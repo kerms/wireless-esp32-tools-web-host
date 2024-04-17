@@ -5,7 +5,6 @@
     </h1>
     <el-divider></el-divider>
 
-
     <h2 class="mb-4 text-xl font-bold tracking-tight md:text-2xl lg:text-3xl">连接Wi-Fi</h2>
     <el-form label-width="auto" ref="formRef" :model="ssidValidateForm" class="m-auto">
       <el-form-item
@@ -45,7 +44,11 @@
             clearable
         />
       </el-form-item>
-
+      <div class="mb-2">
+        <el-alert type="info" show-icon>
+          如果不是通过透传器的热点连接，更换Wi-Fi将导致此界面与透传器断开连接。
+        </el-alert>
+      </div>
       <div class="flex justify-center">
         <el-button @click="onConnectClick" type="primary">连接</el-button>
       </div>
@@ -259,7 +262,11 @@ const onClientMsg = (msg: ServerMsg) => {
       break;
     case WifiCmd.WIFI_API_JSON_STA_GET_AP_INFO: {
       const info = msg.data as WifiInfo;
-      Object.assign(wifiStaApInfo, info);
+      if (info.rssi === 0) {
+        Object.assign(wifiStaApInfo, defWifiInfo);
+      } else {
+        Object.assign(wifiStaApInfo, info);
+      }
       if (connectBtnClicked) {
         connectBtnClicked = 0;
         globalNotifyRightSide(wifiStaApInfo.ssid + " 连接成功", "success");

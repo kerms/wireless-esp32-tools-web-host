@@ -59,7 +59,7 @@ const compileTime = import.meta.env.VITE_APP_LAST_COMMIT;
       <el-descriptions-item label="github"><a href="https://github.com/kerms">https://github.com/kerms</a>
       </el-descriptions-item>
       <el-descriptions-item label="邮箱">kerms@niazo.org</el-descriptions-item>
-      <el-descriptions-item label="BiliBili"><a href="https://space.bilibili.com/38669852">UID38669852</a>
+      <el-descriptions-item label="BiliBili"><a href="https://space.bilibili.com/3461571571353885">3461571571353885</a>
       </el-descriptions-item>
       <el-descriptions-item label="QQ群">642246000</el-descriptions-item>
       <el-descriptions-item label="备注">欢迎大家来打扰啊～</el-descriptions-item>

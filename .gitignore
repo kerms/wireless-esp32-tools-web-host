@@ -28,9 +28,9 @@ coverage
 *.sw?
 
 *.tsbuildinfo
-package-lock.json
 components.d.ts
 auto-imports.d.ts
 
 # Personal
 **/_priv_*
+Makefile
