@@ -5,6 +5,7 @@
   "type": "module",
   "scripts": {
     "dev": ". ./set_env.sh && vite",
+    "devh": ". ./set_env.sh && vite --host",
     "build": "run-p type-check \"build-only {@}\" --",
     "preview": ". ./set_env.sh && vite preview",
     "build-only": ". ./set_env.sh && vite build",
@@ -14,11 +15,14 @@
     "format": "prettier --write src/"
   },
   "dependencies": {
-    "element-plus": "^2.6.1",
+    "@vueuse/core": "^10.9.0",
+    "ansi_up": "^6.0.2",
+    "element-plus": "^2.7.3",
     "mitt": "^3.0.1",
     "pinia": "^2.1.7",
     "vue": "^3.4.21",
     "vue-i18n": "^9.10.2",
+    "vuetify": "^3.6.5",
     "vue-router": "^4.3.0"
   },
   "devDependencies": {
@@ -44,6 +48,7 @@
     "vite-plugin-css-injected-by-js": "^3.5.0",
     "vite-plugin-html": "^3.2.2",
     "vite-plugin-singlefile": "^2.0.1",
+    "vite-plugin-vuetify": "^2.0.3",
     "vite-svg-loader": "^5.1.0",
     "vue-tsc": "^2.0.6"
   }

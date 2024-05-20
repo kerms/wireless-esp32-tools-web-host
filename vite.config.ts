@@ -7,7 +7,7 @@ import vue from '@vitejs/plugin-vue'
 import svgLoader from "vite-svg-loader";
 import cssInjectedByJsPlugin from "vite-plugin-css-injected-by-js";
 import { viteSingleFile } from 'vite-plugin-singlefile'
-
+import vuetify from 'vite-plugin-vuetify'
 
 // https://vitejs.dev/config/
 export default ({mode}: ConfigEnv) => {
@@ -25,6 +25,7 @@ export default ({mode}: ConfigEnv) => {
       svgLoader(),
       cssInjectedByJsPlugin(),
       viteSingleFile(),
+      vuetify(),
     ],
     define: {},
     resolve: {
