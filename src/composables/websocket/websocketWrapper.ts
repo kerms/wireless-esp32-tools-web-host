@@ -80,26 +80,13 @@ class OneTimeWebsocket implements IWebsocket {
                 return
 
             const msg: ServerMsg = {
-                data: {},
+                data: ev.data,
                 type: "json",
             }
             if (typeof ev.data === "string") {
-                try {
-                    msg.data = JSON.parse(ev.data) as ApiJsonMsg;
-                    if ((msg.data as ApiJsonMsg).cmd === undefined ||
-                        (msg.data as ApiJsonMsg).module === undefined
-                    ){
-                        console.log("Server msg has no cmd or module");
-                        return;
-                    }
-                } catch (e) {
-                    console.log(e);
-                    return;
-                }
+                msg.type = "json"
             } else {
                 msg.type = "binary";
-                msg.data = ev.data;
-                console.log(typeof ev.data);
             }
             this.msgCallback(msg);
         }
@@ -150,11 +137,8 @@ class OneTimeWebsocket implements IWebsocket {
         if (isDevMode()) {
             console.log('WebSocket proxies data ', msg);
         }
-        if (msg.type === "binary") {
-            // this.socket.send(msg.data);
-        } else if (msg.type === "json") {
-            this.socket.send(JSON.stringify(msg.data));
-        }
+
+        this.socket.send(msg.data);
     }
 
     clear() {

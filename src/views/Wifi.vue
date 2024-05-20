@@ -198,14 +198,13 @@ import {
   WifiCmd,
   type WifiInfo,
   type WifiList,
-  WifiModuleID,
   wifi_ap_get_info, wifi_connect_to
 } from "@/api/apiWifi";
 import type {FormInstance} from "element-plus";
 
 import InlineSvg from "@/components/InlineSvg.vue";
 import type {ApiJsonMsg, ControlMsg, ServerMsg} from "@/api";
-import {ControlEvent, ControlMsgType} from "@/api";
+import {ControlEvent, ControlMsgType, WtModuleID} from "@/api";
 import {registerModule, unregisterModule} from "@/router/msgRouter";
 import {useWsStore} from "@/stores/websocket";
 import {globalNotify, globalNotifyRightSide} from "@/composables/notification";
@@ -250,18 +249,12 @@ const querySearch = (queryString: string, cb: any) => {
   }
 }
 
-const onClientMsg = (msg: ServerMsg) => {
-  if (msg.type !== "json") {
-    return;
-  }
-
-  let json = msg.data as ApiJsonMsg;
-
-  switch (json.cmd as WifiCmd) {
+const onClientMsg = (msg: ApiJsonMsg) => {
+  switch (msg.cmd as WifiCmd) {
     case WifiCmd.UNKNOWN:
       break;
     case WifiCmd.WIFI_API_JSON_STA_GET_AP_INFO: {
-      const info = msg.data as WifiInfo;
+      const info = msg as WifiInfo;
       if (info.rssi === 0) {
         Object.assign(wifiStaApInfo, defWifiInfo);
       } else {
@@ -276,7 +269,7 @@ const onClientMsg = (msg: ServerMsg) => {
     case WifiCmd.WIFI_API_JSON_CONNECT:
       break;
     case WifiCmd.WIFI_API_JSON_GET_SCAN: {
-      const list = msg.data as WifiList;
+      const list = msg as WifiList;
       scanning.value = false;
       list.scan_list.forEach(value => {
         if (value.rssi > -50) {
@@ -298,7 +291,7 @@ const onClientMsg = (msg: ServerMsg) => {
     case WifiCmd.WIFI_API_JSON_DISCONNECT:
       break;
     case WifiCmd.WIFI_API_JSON_AP_GET_INFO: {
-      const info = msg.data as WifiInfo;
+      const info = msg as WifiInfo;
       Object.assign(wifiApInfo, info);
       break;
     }
@@ -342,16 +335,17 @@ function onConnectClick() {
 }
 
 onMounted(() => {
-  registerModule(WifiModuleID, {
+  registerModule(WtModuleID.WIFI, {
     ctrlCallback: onClientCtrl,
-    serverMsgCallback: onClientMsg
+    serverJsonMsgCallback: onClientMsg,
+    serverBinMsgCallback: () => {},
   });
   wifi_sta_get_ap_info();
   wifi_ap_get_info();
 });
 
 onUnmounted(() => {
-  unregisterModule(WifiModuleID);
+  unregisterModule(WtModuleID.WIFI);
 });
 
 
