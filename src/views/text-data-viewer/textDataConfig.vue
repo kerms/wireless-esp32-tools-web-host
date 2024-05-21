@@ -85,7 +85,10 @@
 
             <el-form-item label=" ">
               <div class="flex">
-                <el-button type="primary">连接</el-button>
+                <el-button :type="store.acceptIncomingData ? 'danger': 'success'"
+                           :disabled="wsStore.state !== ControlEvent.CONNECTED">
+                  {{ store.acceptIncomingData ? "停止数据收发" : "开始数据收发" }}
+                </el-button>
               </div>
             </el-form-item>
           </el-form>
@@ -161,6 +164,34 @@
                       过滤
                     </template>
                   </el-input>
+
+                  <div class="border rounded flex flex-col">
+                    <el-tooltip
+                        class="box-item"
+                        effect="light"
+                        placement="right-start"
+                    >
+                      <template #content>
+
+                      </template>
+                      <el-checkbox border v-model="store.dataFilterAutoUpdate">新数据自动刷新</el-checkbox>
+                    </el-tooltip>
+
+                    <el-tooltip content="提高间隔可减少CPU资源的使用" placement="right" effect="light" :show-after="500">
+                      <div class="flex gap-4 p-2">
+                        <el-text>数据显示刷新间隔(ms)</el-text>
+                        <el-input-number
+                            :step="10"
+                            :min="10"
+                            size="small"
+                            v-model="store.batchUpdateTime"
+                        >
+                        </el-input-number>
+                      </div>
+                    </el-tooltip>
+
+                  </div>
+
                 </div>
 
               </template>
@@ -224,9 +255,12 @@
 <script setup lang="ts">
 import {ref} from "vue";
 import {useDataViewerStore} from "@/stores/dataViewerStore";
+import {useWsStore} from "@/stores/websocket";
 import {globalNotify} from "@/composables/notification";
+import {ControlEvent} from "@/api";
 
 const store = useDataViewerStore()
+const wsStore = useWsStore()
 const collapseActiveName = ref(["1", "2"])
 
 const uartCustomBaud = ref(9600)

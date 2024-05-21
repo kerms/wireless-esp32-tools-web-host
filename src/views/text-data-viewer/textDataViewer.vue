@@ -39,14 +39,24 @@
           placement="top"
       >
         <template #content>
-          <p>与缓存同步</p>
+          <p>与缓存同步+过滤</p>
         </template>
         <el-button size="small" @click="store.refreshFilteredBuff">
           刷新
         </el-button>
       </el-tooltip>
-
-<!--      <el-checkbox class="hover:bg-blue-200" size="small" v-model="store.pauseAutoRefresh" label="暂停数据刷新" border/>-->
+      <el-tooltip
+          class="box-item"
+          effect="light"
+          placement="top"
+      >
+        <template #content>
+          <p>仅停止刷新显示区，后台继续接收数据</p>
+        </template>
+        <el-checkbox size="small" border v-model="store.dataFilterAutoUpdate">
+          自动刷新
+        </el-checkbox>
+      </el-tooltip>
     </div>
 
 
@@ -85,6 +95,7 @@
 
   <div class="flex flex-grow overflow-hidden border-2 scroll-m-2">
     <v-virtual-scroll
+        v-if="store.showVirtualScroll"
         :items="store.dataFiltered"
         id="myScrollerID"
         ref="vuetifyVirtualScrollRef"
@@ -94,8 +105,13 @@
       <template v-slot:default="{ item, }">
         <div>
           <div class="flex">
-            <p class="text-nowrap text-sm text-lime-500" v-if="item.isRX" type="success" v-show="store.showTimestamp"><span>{{ item.time }}</span>◄-RX|</p>
-            <p class="text-nowrap text-sm text-sky-500" v-else type="primary" v-show="store.showTimestamp"><span>{{ item.time }}</span>TX-►|</p>
+            <p class="text-nowrap text-sm text-lime-500" v-if="item.isRX" type="success" v-show="store.showTimestamp">
+              <span>{{ item.time }}</span>◄-RX|</p>
+            <p class="text-nowrap text-sm text-sky-500" v-else-if="item.type === 0" type="primary" v-show="store.showTimestamp">
+              <span>{{ item.time }}</span>TX-►|</p>
+            <p class="text-nowrap text-sm text-amber-800" v-else type="primary" v-show="store.showTimestamp">
+              <span>{{ item.time }}</span>未发送►|</p>
+
             <p v-show="store.showText"
                v-html="item.str"></p>
           </div>
@@ -105,7 +121,41 @@
           <div class="flex">
             <p v-show="store.showHexdump"
                class="text-nowrap"
-                 :style="{ 'background-color': item.isRX ? store.RxHexdumpColor : store.TxHexdumpColor }"
+               :style="{ 'background-color': item.isRX ? store.RxHexdumpColor : store.TxHexdumpColor }"
+               v-html="item.hexdump"
+            ></p>
+          </div>
+        </div>
+      </template>
+    </v-virtual-scroll>
+    <v-virtual-scroll
+        v-else
+        :items="store.dataFiltered"
+        id="myScrollerID"
+        ref="vuetifyVirtualScrollRef2"
+        class="font-mono break-all text-sm"
+        :class="[store.enableLineWrap ? 'break-all' : 'text-nowrap']"
+    >
+      <template v-slot:default="{ item, }">
+        <div>
+          <div class="flex">
+            <p class="text-nowrap text-sm text-lime-500" v-if="item.isRX" type="success" v-show="store.showTimestamp">
+              <span>{{ item.time }}</span>◄-RX|</p>
+            <p class="text-nowrap text-sm text-sky-500" v-else-if="item.type === 0" type="primary" v-show="store.showTimestamp">
+              <span>{{ item.time }}</span>TX-►|</p>
+            <p class="text-nowrap text-sm text-amber-800" v-else type="primary" v-show="store.showTimestamp">
+              <span>{{ item.time }}</span>未发送►|</p>
+
+            <p v-show="store.showText"
+               v-html="item.str"></p>
+          </div>
+          <div class="flex text-wrap">
+            <p v-show="store.showHex" class="">{{ item.hex }}</p>
+          </div>
+          <div class="flex">
+            <p v-show="store.showHexdump"
+               class="text-nowrap"
+               :style="{ 'background-color': item.isRX ? store.RxHexdumpColor : store.TxHexdumpColor }"
                v-html="item.hexdump"
             ></p>
           </div>
@@ -125,18 +175,21 @@
         </el-tag>
       </el-link>
 
-      <div class="flex align-center">
-        <el-checkbox v-model="enableLoopSend" class="font-mono font-bold max-h-5" size="small" border>
-          循环发送(ms)
-        </el-checkbox>
-        <el-input-number
-            v-model="loopSendFreq"
-            class="h-5"
-            size="small"
-            :step="10"
-        >
-        </el-input-number>
-      </div>
+      <el-tooltip content="实际频率受界面刷新率影响，如需要更精确，可以尝试关闭‘自动刷新’" placement="right" effect="light" :show-after="1000">
+        <div class="flex align-center">
+          <el-checkbox v-model="enableLoopSend" class="font-mono font-bold max-h-5" size="small" border>
+            循环发送(ms)
+          </el-checkbox>
+          <el-input-number
+              v-model="loopSendFreq"
+              class="h-5"
+              size="small"
+              :step="10"
+              :min="1"
+          >
+          </el-input-number>
+        </div>
+      </el-tooltip>
 
       <el-link @click="isSendTextFormat = !isSendTextFormat">
         <el-tag class="font-mono font-bold" size="small">发送格式：{{ isSendTextFormat ? "文本" : "HEX" }}</el-tag>
@@ -145,12 +198,12 @@
     <div class="flex gap-2">
       <el-link @click="showTxTotalByte = !showTxTotalByte">
         <el-tag class="font-mono font-bold" size="small">
-          {{ showTxTotalByte ? `TX统计:${store.TxTotalByteCount}B`: `上个TX帧:${store.TxByteCount}B` }}
+          {{ showTxTotalByte ? `TX统计:${store.TxTotalByteCount}B` : `上个TX帧:${store.TxByteCount}B` }}
         </el-tag>
       </el-link>
       <el-link type="success" @click="showRxTotalByte = !showRxTotalByte">
         <el-tag class="font-mono font-bold" size="small" type="success">
-          {{ showRxTotalByte ? `RX统计:${store.RxTotalByteCount}B`: `上个RX帧:${store.RxByteCount}B` }}
+          {{ showRxTotalByte ? `RX统计:${store.RxTotalByteCount}B` : `上个RX帧:${store.RxByteCount}B` }}
         </el-tag>
       </el-link>
       <div class="flex align-center">
@@ -184,22 +237,25 @@ import {nextTick, onMounted, onUnmounted, ref, watch} from "vue";
 import {useDataViewerStore} from "@/stores/dataViewerStore";
 import InlineSvg from "@/components/InlineSvg.vue";
 import TextDataConfig from "@/views/text-data-viewer/textDataConfig.vue";
+import {debouncedWatch} from "@vueuse/core";
 
 const count = ref(0);
 const showTxTotalByte = ref(false);
 const showRxTotalByte = ref(false);
-const vuetifyVirtualScrollRef = ref(document.body);
 const vuetifyVirtualScrollBarRef = ref(document.body);
 const vuetifyVirtualScrollContainerRef = ref(document.body);
 
 const enableLoopSend = ref(false);
 const loopSendFreq = ref(1000);
-let loopSendIntervalID: number;
+let loopSendIntervalID: number = -1;
+
 const isSendTextFormat = ref(true)
 const isHexStringValid = ref(false);
 
 const uartInputTextBox = ref("")
 const store = useDataViewerStore();
+
+let lastScrollHeight = 0;
 
 const mutationObserver = new MutationObserver(() => {
   if (store.forceToBottom) {
@@ -207,7 +263,7 @@ const mutationObserver = new MutationObserver(() => {
   }
 });
 
-onMounted(() => {
+function attachScroll() {
   const parent = document.getElementById('myScrollerID') || document.body;
 
   // used to scroll to bottom
@@ -219,14 +275,24 @@ onMounted(() => {
   vuetifyVirtualScrollBarRef.value.onscroll = handleScroll;
 
   if (vuetifyVirtualScrollContainerRef.value) {
-    const config = { childList: true, subtree: true, attributes: true };
+    const config = {childList: true, subtree: true, attributes: true};
     mutationObserver.observe(vuetifyVirtualScrollBarRef.value, config)
   }
+}
+
+onMounted(() => {
+  attachScroll();
 })
 
 onUnmounted(() => {
   mutationObserver.disconnect();
 });
+
+debouncedWatch(() => store.showVirtualScroll, () => {
+  lastScrollHeight = 0;
+  mutationObserver.disconnect();
+  attachScroll();
+}, {debounce: 80});
 
 
 function addItem(nr: number) {
@@ -253,7 +319,7 @@ function addItem(nr: number) {
     rawText = count.value + "<p class=\"border-4\"> 666666666b\n6666      666\x1b[33m6666666666666666666666666</p>b\n"
     const encoder = new TextEncoder();
     const arr = encoder.encode(rawText);
-    store.addItem(arr, true);
+    store.addItem(arr, false, false, 1);
   }
 }
 
@@ -283,7 +349,7 @@ function formatHexInput(input: string) {
   str = str.replace(/[^0-9A-F]/gi, ' ');
 
   let segments = str.split(/\s+/);
-  let output:string[] = [];
+  let output: string[] = [];
 
   segments.forEach(segment => {
     // Check if segment length is odd and needs padding
@@ -315,7 +381,7 @@ watch(isSendTextFormat, (value) => {
   }
 });
 
-watch(() => uartInputTextBox.value, (newValue) => {
+watch(() => uartInputTextBox.value, () => {
   if (!isSendTextFormat.value) {
     checkHexTextValid()
   }
@@ -323,17 +389,22 @@ watch(() => uartInputTextBox.value, (newValue) => {
 
 watch(enableLoopSend, (newValue) => {
   if (newValue) {
-    clearInterval(loopSendIntervalID);
+    if (loopSendIntervalID !== -1) {
+      clearInterval(loopSendIntervalID);
+    }
     loopSendIntervalID = setInterval(onSendClick, loopSendFreq.value);
   } else {
     clearInterval(loopSendIntervalID);
+    loopSendIntervalID = -1;
   }
 });
 
 watch(loopSendFreq, (value) => {
   if (enableLoopSend.value && value) {
     /* update interval with new value */
-    clearInterval(loopSendIntervalID);
+    if (loopSendIntervalID !== -1) {
+      clearInterval(loopSendIntervalID);
+    }
     loopSendIntervalID = setInterval(onSendClick, loopSendFreq.value);
   }
 })
@@ -341,17 +412,26 @@ watch(loopSendFreq, (value) => {
 /* patch scroll container does not update clear filter */
 watch(() => store.filterChanged, (value) => {
   if (value) {
-    scrollToBottom();
     scrollToTop()
+    scrollToBottom();
     store.filterChanged = false;
   }
 })
 
 const handleScroll = (ev: Event) => {
   if (store.forceToBottom) {
+    if (vuetifyVirtualScrollBarRef.value.scrollTop - lastScrollHeight < 0) {
+      store.forceToBottom = false;
+    }
+  }
+  lastScrollHeight = vuetifyVirtualScrollBarRef.value.scrollTop;
+};
+
+watch(() => store.forceToBottom, value => {
+  if (value) {
     setTimeout(scrollToBottom, 0);
   }
-};
+});
 
 function clearSendInput() {
   uartInputTextBox.value = ""
@@ -364,12 +444,22 @@ function handleTextboxKeydown(ev: KeyboardEvent) {
 }
 
 function onSendClick() {
-  if (isSendTextFormat.value) {
-    store.addString(uartInputTextBox.value, false, true);
-  } else if (!isHexStringValid.value) {
-    uartInputTextBox.value = formatHexInput(uartInputTextBox.value);
+  if (store.acceptIncomingData) {
+    if (isSendTextFormat.value) {
+      store.addString(uartInputTextBox.value, false, true);
+    } else if (!isHexStringValid.value) {
+      uartInputTextBox.value = formatHexInput(uartInputTextBox.value);
+    } else {
+      store.addHexString(uartInputTextBox.value, false, true);
+    }
   } else {
-    store.addHexString(uartInputTextBox.value, false, true);
+    if (isSendTextFormat.value) {
+      store.addString(uartInputTextBox.value, false, true, 1);
+    } else if (!isHexStringValid.value) {
+      uartInputTextBox.value = formatHexInput(uartInputTextBox.value);
+    } else {
+      store.addHexString(uartInputTextBox.value, false, true, 1);
+    }
   }
 }
 

@@ -368,8 +368,9 @@ const onUartJsonMsg = (msg: api.ApiJsonMsg) => {
     case WtUartCmd.GET_CONFIG:
     case WtUartCmd.SET_CONFIG:{
       const uartMsg = msg as IUartMsgConfig;
-
-
+      store.uartConfig.data_bits = uartMsg.data_bits;
+      store.uartConfig.stop_bits = uartMsg.stop_bits;
+      store.uartConfig.parity = uartMsg.parity;
       break;
     }
     default:
@@ -381,7 +382,9 @@ const onUartJsonMsg = (msg: api.ApiJsonMsg) => {
 };
 
 const onUartBinaryMsg = (msg: ApiBinaryMsg) => {
-  console.log("uart", msg);
+  if (isDevMode()) {
+    console.log("uart", msg);
+  }
 
   if (msg.sub_mod !== 1) {
     /* ignore other num for the moment */
@@ -410,9 +413,10 @@ const onClientCtrl = (msg: api.ControlMsg) => {
   }
 
   if (msg.data === ControlEvent.DISCONNECTED) {
-
+    store.acceptIncomingData = false;
   } else if (msg.data === ControlEvent.CONNECTED) {
     updateUartData();
+    store.acceptIncomingData = true;
   }
 };
 

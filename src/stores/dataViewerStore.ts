@@ -1,5 +1,12 @@
 import {defineStore} from "pinia";
-import {computed, type Ref, ref, shallowReactive} from "vue";
+import {
+    computed,
+    type Ref,
+    type ShallowReactive,
+    ref,
+    shallowReactive,
+    watch
+} from "vue";
 import {AnsiUp} from 'ansi_up'
 import {debouncedWatch} from "@vueuse/core";
 import {type IUartConfig, uart_send_msg} from "@/api/apiUart";
@@ -13,6 +20,7 @@ interface IDataArchive {
 export interface IDataBuf {
     time: string;
     isRX: boolean;
+    type: number;
     data: Uint8Array;
     str: string;
     hex: string;
@@ -66,6 +74,9 @@ function unescapeString(str: string) {
 const zeroPad = (num: number, places: number) => String(num).padStart(places, '0');
 const ansi_up = new AnsiUp();
 ansi_up.escape_html = false;
+
+const ANSI_REFRESH_WINDOW = new Uint8Array([0x1B, 0x5B, 0x37, 0x74]);
+const ANSI_CLEAR_WINDOW = new Uint8Array([0x1B, 0x5B, 0x32, 0x4A]);
 
 /* quick HEX lookup table */
 const byteToHex: string[] = new Array(256);
@@ -128,11 +139,12 @@ function strToHTML(str: string) {
         .replace(/ /g, '&nbsp;');
 }
 
-function isArrayContained(subArray: Uint8Array, mainArray: Uint8Array) {
+function isArrayContained(subArray: Uint8Array, mainArray: Uint8Array,
+                          sub_start: number = 0, main_start: number = 0) {
     if (subArray.length === 0) return -1;
-    outerLoop: for (let i = 0; i <= mainArray.length - subArray.length; i++) {
+    outerLoop: for (let i = main_start; i <= mainArray.length - subArray.length; i++) {
         // Check if subArray is found starting at position i in mainArray
-        for (let j = 0; j < subArray.length; j++) {
+        for (let j = sub_start; j < subArray.length; j++) {
             if (mainArray[i + j] !== subArray[j]) {
                 continue outerLoop; // Continue the outer loop if mismatch found
             }
@@ -207,8 +219,7 @@ export const useDataViewerStore = defineStore('text-viewer', () => {
     const showHexdump = ref(false);
     const enableLineWrap = ref(true);
     const showTimestamp = ref(true);
-
-    const pauseAutoRefresh = ref(false);
+    const showVirtualScroll = ref(true);
 
     const RxHexdumpColor = ref("#f0f9eb");
     const RxTotalByteCount = ref(0);
@@ -253,36 +264,40 @@ export const useDataViewerStore = defineStore('text-viewer', () => {
         return encoder.encode(str);
     })
 
-    debouncedWatch(() => frameBreakSequence.value, (newValue) => {
-        const unescapedStr = unescapeString(newValue);
-        const encoder = new TextEncoder();
-        frameBreakSequenceNormalized.value = encoder.encode(unescapedStr);
-    }, {debounce: 300, immediate: true});
+    // debouncedWatch(() => frameBreakSequence.value, (newValue) => {
+    //     const unescapedStr = unescapeString(newValue);
+    //     const encoder = new TextEncoder();
+    //     frameBreakSequenceNormalized.value = encoder.encode(unescapedStr);
+    // }, {debounce: 300, immediate: true});
+    //
+    // debouncedWatch(() => frameBreakDelay.value, (newValue) => {
+    //     if (newValue < 0) {
+    //         frameBreakReady = false;
+    //         clearTimeout(frameBreakTimeoutID);
+    //     } else if (newValue === 0) {
+    //         frameBreakReady = true;
+    //         clearTimeout(frameBreakTimeoutID);
+    //     } else {
+    //         refreshTimeout();
+    //     }
+    // }, {debounce: 300, immediate: true});
 
-    debouncedWatch(() => frameBreakDelay.value, (newValue) => {
-        if (newValue < 0) {
-            frameBreakReady = false;
-            clearTimeout(frameBreakTimeoutID);
-        } else if (newValue === 0) {
-            frameBreakReady = true;
-            clearTimeout(frameBreakTimeoutID);
-        } else {
-            refreshTimeout();
-        }
-    }, {debounce: 300, immediate: true});
+    // let frameBreakReady = false;
+    // let frameBreakTimeoutID = setTimeout(() => {
+    // }, 0);
 
     const dataArchive: IDataArchive[] = [];
     const dataBuf: IDataBuf[] = [];
     const dataBufLength = ref(0);
 
     /* actual data shown on screen */
-    const dataFiltered: IDataBuf[] = shallowReactive([]);
-    const dataFilteredLength = ref(0);
+    const dataFiltered: ShallowReactive<IDataBuf[]> = shallowReactive([]);
+    const dataFilterAutoUpdate = ref(true);
+    const acceptIncomingData = ref(false);
 
-
-    let frameBreakReady = false;
-    let frameBreakTimeoutID = setTimeout(() => {
-    }, 0);
+    // let frameBreakReady = false;
+    // let frameBreakTimeoutID = setTimeout(() => {
+    // }, 0);
 
     debouncedWatch(computedFilterValue, () => {
         dataFiltered.length = 0; // Clear the array efficiently
@@ -302,24 +317,93 @@ export const useDataViewerStore = defineStore('text-viewer', () => {
         }
     }, {debounce: 300});
 
-    function addString(item: string, isRX: boolean = false, doSend: boolean = false) {
+    let batchDataUpdateIntervalID: number = -1;
+    const batchUpdateTime = ref(80); /* ms */
+    let batchStartIndex: number = 0;
+
+    watch(batchUpdateTime, value => {
+        if (batchDataUpdateIntervalID >= 0) {
+            clearInterval(batchDataUpdateIntervalID);
+            batchDataUpdateIntervalID = -1;
+        }
+        batchUpdate();
+        if (dataFilterAutoUpdate.value && batchDataUpdateIntervalID < 0) {
+            batchDataUpdateIntervalID = setInterval(batchUpdate, batchUpdateTime.value);
+        }
+    }, {immediate: true});
+
+    setInterval(() => {
+        dataBufLength.value = dataBuf.length;
+    }, 500);
+
+    function addString(item: string, isRX: boolean = false, doSend: boolean = false, type: number = 0) {
         const encoder = new TextEncoder();
         item = unescapeString(item);
         const encodedStr = encoder.encode(item);
-        return addItem(encodedStr, isRX, doSend);
+        return addItem(encodedStr, isRX, doSend, type);
     }
 
-    function addHexString(item: string, isRX: boolean = false, doSend: boolean = false){
+    function addHexString(item: string, isRX: boolean = false, doSend: boolean = false, type: number = 0){
         if (item === "") {
             return addItem(new Uint8Array(0), isRX);
         }
         const hexArray = item.split(' ');
         // Map each hex value to a decimal (integer) and create a Uint8Array from these integers
         const uint8Array = new Uint8Array(hexArray.map(hex => parseInt(hex, 16)));
-        return addItem(uint8Array, isRX, doSend);
+        return addItem(uint8Array, isRX, doSend, type);
     }
 
-    function addItem(item: Uint8Array, isRX: boolean, doSend: boolean = false){
+    function batchUpdate() {
+        if (batchStartIndex >= dataBuf.length) {
+            return;
+        }
+
+        /* handle data buf array */
+        if (dataBuf.length >= 30000) {
+            /* make array size to 15000 */
+            const deleteCount = dataBuf.length - 30000 + 5000;
+            batchStartIndex -= deleteCount;
+            dataBuf.splice(0, deleteCount);
+        }
+
+        if (!dataFilterAutoUpdate.value) {
+            return;
+        }
+        softRefreshFilterBuf();
+    }
+
+    function softRefreshFilterBuf(delayTime: number = 0) {
+        /* handle filtered buf array */
+        const totalBufLength = dataBuf.length - batchStartIndex + dataFiltered.length;
+
+        if (batchStartIndex < 0) {
+            dataFiltered.length = 1;
+            dataFiltered.pop();
+        } else if (totalBufLength >= 30000) {
+            dataFiltered.splice(0, totalBufLength - 30000 + 5000);
+        }
+
+        if (!enableFilter.value || computedFilterValue.value.length === 0) {
+
+            /* no filter, do normal push */
+            if (batchStartIndex < 0) {
+                dataFiltered.push(...dataBuf);
+            } else {
+                dataFiltered.push(...dataBuf.slice(batchStartIndex));
+            }
+            batchStartIndex = dataBuf.length;
+        } else if (enableFilter.value && computedFilterValue.value.length !== 0) {
+            for (let i = batchStartIndex; i < dataBuf.length; i++) {
+                if (isArrayContained(computedFilterValue.value, dataBuf[i].data) >= 0) {
+                    dataFiltered.push(dataBuf[i]);
+                }
+            }
+            batchStartIndex = dataBuf.length;
+        }
+    }
+
+    function addItem(item: Uint8Array, isRX: boolean, doSend: boolean = false, type: number = 0) {
+
         const t = new Date();
 
         // dataArchive.push({
@@ -349,119 +433,107 @@ export const useDataViewerStore = defineStore('text-viewer', () => {
             TxByteCount.value = item.length;
         }
 
-        let str = decodeUtf8(item);
+        let str = ""
+        str = decodeUtf8(item);
         str = escapeHTML(str);
         str = strToHTML(str);
 
         /* unescape data \n */
         if (enableAnsiDecode.value) {
+            if (isArrayContained(ANSI_CLEAR_WINDOW, item) >= 0) {
+                clearFilteredBuff();
+            }
+            if (isArrayContained(ANSI_REFRESH_WINDOW, item) >= 0) {
+                batchUpdate()
+                softRefreshFilterBuf();
+            }
             /* ansi_to_html will escape HTML sequence */
             str = ansi_up.ansi_to_html("\x1b[0m" + str);
         }
 
         dataBuf.push({
-            time: "["
-                + zeroPad(t.getHours(), 2) + ":"
-                + zeroPad(t.getMinutes(), 2) + ":"
-                + zeroPad(t.getSeconds(), 2) + ":"
-                + zeroPad(t.getMilliseconds(), 3)
-                + "]",
+            time:
+            "["
+            + zeroPad(t.getHours(), 2) + ":"
+            + zeroPad(t.getMinutes(), 2) + ":"
+            + zeroPad(t.getSeconds(), 2) + ":"
+            + zeroPad(t.getMilliseconds(), 3)
+            + "]",
+            type: type,
             data: item,
             isRX: isRX,
             str: str,
             hex: u8toHexString(item),
             hexdump: u8toHexdump(item),
         });
-
-        if (dataBuf.length >= 20000) {
-            dataBuf.splice(0, 5000);
-        }
-
-        if (!enableFilter.value || computedFilterValue.value.length === 0) {
-            dataFiltered.push(dataBuf[dataBuf.length - 1]);
-            if (dataFiltered.length >= 20000) {
-                dataFiltered.splice(0, 5000);
-            }
-        } else if (enableFilter.value && isArrayContained(computedFilterValue.value, dataBuf[dataBuf.length - 1].data) >= 0) {
-            dataFiltered.push(dataBuf[dataBuf.length - 1]);
-            if (dataFiltered.length >= 20000) {
-                dataFiltered.splice(0, 5000);
-            }
-        }
-
-        dataBufLength.value = dataBuf.length;
-    }
-
-    function popItem() {
-        dataBuf.pop();
-        dataFiltered.pop();
-    }
-
-    function doFrameBreak() {
-        frameBreakReady = true;
     }
 
 
-    function refreshTimeout() {
-        /* always break  */
-        // if (frameBreakDelay.value === 0) {
-        //     frameBreakReady = true;
-        // }
+    // function doFrameBreak() {
+    //     frameBreakReady = true;
+    // }
 
 
-        if (!frameBreakReady && frameBreakDelay.value > 0) {
-            clearTimeout(frameBreakTimeoutID);
-            frameBreakTimeoutID = setTimeout(doFrameBreak, frameBreakDelay.value);
-        }
-    }
+    // function refreshTimeout() {
+    //     /* always break  */
+    //     // if (frameBreakDelay.value === 0) {
+    //     //     frameBreakReady = true;
+    //     // }
+    //
+    //
+    //     if (!frameBreakReady && frameBreakDelay.value > 0) {
+    //         clearTimeout(frameBreakTimeoutID);
+    //         frameBreakTimeoutID = setTimeout(doFrameBreak, frameBreakDelay.value);
+    //     }
+    // }
 
-    function addChunk(item: Uint8Array, isRX: boolean) {
-        let newArray: Uint8Array;
-
-        if (frameBreakSequence.value === "") {
-            if (frameBreakReady || dataBuf.length === 0 || dataBuf[dataBuf.length - 1].isRX != isRX) {
-                addItem(item, isRX);
-                frameBreakReady = false;
-            } else {
-                /* TODO: append item to last */
-                newArray = new Uint8Array(dataBuf[dataBuf.length - 1].data.length + item.length + 1);
-                newArray.set(dataBuf[dataBuf.length - 1].data);
-                newArray.set(item, dataBuf[dataBuf.length - 1].data.length);
-                popItem();
-                addItem(newArray, isRX);
-            }
-            refreshTimeout();
-            return;
-        }
-
-
-        if (frameBreakReady) {
-            newArray = item;
-        } else {
-            if (dataBuf.length) {
-                newArray = new Uint8Array(dataBuf[dataBuf.length - 1].data.length + item.length + 1);
-                newArray.set(dataBuf[dataBuf.length - 1].data);
-                newArray.set(item, dataBuf[dataBuf.length - 1].data.length);
-                popItem();
-            } else {
-                newArray = item;
-            }
-        }
-
-        console.log(newArray)
-        console.log(frameBreakSequenceNormalized.value)
-
-        /* break frame at sequence match */
-        let matchIndex = isArrayContained(frameBreakSequenceNormalized.value, newArray);
-        while (matchIndex < 0) {
-            console.log(matchIndex)
-            /* update last buf item */
-            addItem(newArray.slice(0, matchIndex + frameBreakSequenceNormalized.value.length), isRX);
-            newArray = newArray.slice(matchIndex + frameBreakSequenceNormalized.value.length);
-            matchIndex = isArrayContained(frameBreakSequenceNormalized.value, newArray);
-        }
-        addItem(newArray.slice(0, matchIndex + frameBreakSequenceNormalized.value.length), isRX);
-    }
+    // function addChunk(item: Uint8Array, isRX: boolean) {
+    //     let newArray: Uint8Array;
+    //
+    //     if (frameBreakSequence.value === "") {
+    //         if (frameBreakReady || dataBuf.length === 0 || dataBuf[dataBuf.length - 1].isRX != isRX) {
+    //             addItem(item, isRX);
+    //             frameBreakReady = false;
+    //         } else {
+    //             /* TODO: append item to last */
+    //             newArray = new Uint8Array(dataBuf[dataBuf.length - 1].data.length + item.length + 1);
+    //             newArray.set(dataBuf[dataBuf.length - 1].data);
+    //             newArray.set(item, dataBuf[dataBuf.length - 1].data.length);
+    //             popItem();
+    //             addItem(newArray, isRX);
+    //         }
+    //         refreshTimeout();
+    //         return;
+    //     }
+    //
+    //
+    //     if (frameBreakReady) {
+    //         newArray = item;
+    //     } else {
+    //         if (dataBuf.length) {
+    //             newArray = new Uint8Array(dataBuf[dataBuf.length - 1].data.length + item.length + 1);
+    //             newArray.set(dataBuf[dataBuf.length - 1].data);
+    //             newArray.set(item, dataBuf[dataBuf.length - 1].data.length);
+    //             popItem();
+    //         } else {
+    //             newArray = item;
+    //         }
+    //     }
+    //
+    //     console.log(newArray)
+    //     console.log(frameBreakSequenceNormalized.value)
+    //
+    //     /* break frame at sequence match */
+    //     let matchIndex = isArrayContained(frameBreakSequenceNormalized.value, newArray);
+    //     while (matchIndex < 0) {
+    //         console.log(matchIndex)
+    //         /* update last buf item */
+    //         addItem(newArray.slice(0, matchIndex + frameBreakSequenceNormalized.value.length), isRX);
+    //         newArray = newArray.slice(matchIndex + frameBreakSequenceNormalized.value.length);
+    //         matchIndex = isArrayContained(frameBreakSequenceNormalized.value, newArray);
+    //     }
+    //     addItem(newArray.slice(0, matchIndex + frameBreakSequenceNormalized.value.length), isRX);
+    // }
 
     function clearByteCount(isRX: boolean) {
         if (isRX) {
@@ -472,9 +544,10 @@ export const useDataViewerStore = defineStore('text-viewer', () => {
     }
 
     function clearDataBuff() {
+        clearFilteredBuff();
         dataBuf.length = 0;
-        dataFiltered.length = 0;
         dataBufLength.value = 0;
+        batchStartIndex = 0;
 
         RxByteCount.value = 0;
         RxTotalByteCount.value = 0;
@@ -484,6 +557,7 @@ export const useDataViewerStore = defineStore('text-viewer', () => {
     }
 
     function clearFilteredBuff() {
+        showVirtualScroll.value = !showVirtualScroll.value;
         dataFiltered.length = 0;
     }
 
@@ -508,22 +582,27 @@ export const useDataViewerStore = defineStore('text-viewer', () => {
 
     return {
         addItem,
-        addChunk,
         addString,
         addHexString,
         clearFilteredBuff,
         clearDataBuff,
         refreshFilteredBuff,
+        softRefreshFilterBuf,
         textSuffixValue,
         textPrefixValue,
         clearByteCount,
         dataBufLength,
         configPanelTab,
         configPanelShow,
-        pauseAutoRefresh,
         quickAccessPanelShow,
         dataFiltered,
+        dataFilterAutoUpdate,
         filterValue,
+        batchUpdateTime,
+        acceptIncomingData,
+
+        showVirtualScroll,
+
         enableAnsiDecode,
         showHex,
         showHexdump,
