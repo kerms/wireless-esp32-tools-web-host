@@ -1,6 +1,5 @@
-import {type ApiJsonMsg, sendJsonMsg} from '@/api'
+import {type ApiJsonMsg, sendJsonMsg, WtModuleID} from '@/api'
 
-export const WifiModuleID = 1;
 export enum WifiCmd {
     UNKNOWN = 0,
     WIFI_API_JSON_STA_GET_AP_INFO,
@@ -17,7 +16,7 @@ interface WifiMsgOut extends ApiJsonMsg {
 
 export function wifi_get_scan_list() {
     const msg : WifiMsgOut = {
-        module: WifiModuleID,
+        module: WtModuleID.WIFI,
         cmd: WifiCmd.WIFI_API_JSON_GET_SCAN,
     }
     sendJsonMsg(msg);
@@ -25,7 +24,7 @@ export function wifi_get_scan_list() {
 
 export function wifi_sta_get_ap_info() {
     const msg : WifiMsgOut = {
-        module: WifiModuleID,
+        module: WtModuleID.WIFI,
         cmd: WifiCmd.WIFI_API_JSON_STA_GET_AP_INFO,
     }
     sendJsonMsg(msg);
@@ -33,7 +32,7 @@ export function wifi_sta_get_ap_info() {
 
 export function wifi_ap_get_info() {
     const msg : WifiMsgOut = {
-        module: WifiModuleID,
+        module: WtModuleID.WIFI,
         cmd: WifiCmd.WIFI_API_JSON_AP_GET_INFO,
     }
     sendJsonMsg(msg);
@@ -41,7 +40,7 @@ export function wifi_ap_get_info() {
 
 export function wifi_connect_to(ssid: string, password: string) {
     const msg: WifiMsgOut = {
-        module: WifiModuleID,
+        module: WtModuleID.WIFI,
         cmd: WifiCmd.WIFI_API_JSON_CONNECT,
         ssid: ssid,
         password: password,
@@ -59,6 +58,6 @@ export interface WifiInfo extends ApiJsonMsg {
     wifiLogo?: string;
 }
 
-export interface WifiList {
+export interface WifiList extends ApiJsonMsg {
     scan_list: Array<WifiInfo>;
 }

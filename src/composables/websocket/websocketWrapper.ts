@@ -58,6 +58,7 @@ class OneTimeWebsocket implements IWebsocket {
                 /* did not receive packet "heartBeatTimeout" times,
                  * connection may be lost: close the socket */
                 if (this.socket.readyState === this.socket.OPEN) {
+                    console.log("No heart beat, break connection");
                     this.close();
                     this.clear();
                 }
@@ -80,31 +81,21 @@ class OneTimeWebsocket implements IWebsocket {
                 return
 
             const msg: ServerMsg = {
-                data: {},
+                data: ev.data,
                 type: "json",
             }
             if (typeof ev.data === "string") {
-                try {
-                    msg.data = JSON.parse(ev.data) as ApiJsonMsg;
-                    if ((msg.data as ApiJsonMsg).cmd === undefined ||
-                        (msg.data as ApiJsonMsg).module === undefined
-                    ){
-                        console.log("Server msg has no cmd or module");
-                        return;
-                    }
-                } catch (e) {
-                    console.log(e);
-                    return;
-                }
+                msg.type = "json"
             } else {
                 msg.type = "binary";
-                msg.data = ev.data;
-                console.log(typeof ev.data);
             }
             this.msgCallback(msg);
         }
 
-        this.socket.onclose = () => {
+        this.socket.onclose = (ev) => {
+            if (isDevMode()) {
+                console.log("ws closed", ev.reason, ev.code);
+            }
             this.socket.onclose = null
             this.socket.onopen = null
             this.socket.onerror = null
@@ -150,11 +141,8 @@ class OneTimeWebsocket implements IWebsocket {
         if (isDevMode()) {
             console.log('WebSocket proxies data ', msg);
         }
-        if (msg.type === "binary") {
-            // this.socket.send(msg.data);
-        } else if (msg.type === "json") {
-            this.socket.send(JSON.stringify(msg.data));
-        }
+
+        this.socket.send(msg.data);
     }
 
     clear() {

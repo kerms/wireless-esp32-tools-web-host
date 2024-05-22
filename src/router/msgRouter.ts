@@ -1,9 +1,11 @@
 import type {ApiJsonMsg, ControlMsg, ServerMsg} from "@/api";
 import {isDevMode} from "@/composables/buildMode";
+import {type ApiBinaryMsg, decodeHeader} from "@/api/binDataDef";
 
 export interface IModuleCallback {
     ctrlCallback: (msg: ControlMsg) => void;
-    serverMsgCallback: (msg: ServerMsg) => void;
+    serverJsonMsgCallback: (msg: ApiJsonMsg) => void;
+    serverBinMsgCallback: (msg: ApiBinaryMsg) => void;
 }
 
 const moduleMap = new Map<number, IModuleCallback>();
@@ -22,19 +24,47 @@ export function unregisterModule(moduleId: number) {
 }
 
 export function routeModuleServerMsg(msg: ServerMsg) {
-    if (msg.type == "json") {
-        const module = (msg.data as ApiJsonMsg).module;
+    if (msg.type === "json") {
+        let jsonMsg: ApiJsonMsg;
+        try {
+            jsonMsg = JSON.parse(msg.data as string) as ApiJsonMsg;
+            if (jsonMsg.cmd === undefined ||
+                jsonMsg.module === undefined
+            ){
+                console.log("Server msg has no cmd or module", msg.data);
+                return;
+            }
+        } catch (e) {
+            console.log(e);
+            return;
+        }
+
+        const module = jsonMsg.module;
         const moduleHandler = moduleMap.get(module);
         if (moduleHandler) {
-            moduleHandler.serverMsgCallback(msg);
+            moduleHandler.serverJsonMsgCallback(jsonMsg);
         } else {
             if (isDevMode()) {
                 console.log("routeModuleServerMsg module not loaded", module);
             }
         }
     } else {
-        if (isDevMode()) {
-            console.log("routeModuleServerMsg ignored:", msg);
+        const arr = msg.data as ArrayBuffer;
+        if (arr.byteLength < 4) {
+            if (isDevMode()) {
+                console.log("binary message too short");
+            }
+            return;
+        }
+
+        const binaryMsg = decodeHeader(msg.data as ArrayBuffer);
+        const moduleHandler = moduleMap.get(binaryMsg.module);
+        if (moduleHandler) {
+            moduleHandler.serverBinMsgCallback(binaryMsg);
+        } else {
+            if (isDevMode()) {
+                console.log("routeModuleServerMsg ignored:", msg, binaryMsg);
+            }
         }
     }
 }
