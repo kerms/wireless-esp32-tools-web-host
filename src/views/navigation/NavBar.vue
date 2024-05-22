@@ -136,11 +136,7 @@ const menuItems: Item[] = ([
   }, {
     name: translate("page.feedback"),
     href: "/feedback",
-  },/* {
-    name: translate("page.uart"),
-    href: "/uart",
-    class: "todo-menu-item",
-  },*/
+  },
 ]);
 
 </script>

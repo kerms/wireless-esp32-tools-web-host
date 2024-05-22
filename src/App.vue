@@ -40,7 +40,7 @@ onMounted(() => {
   logHelloMessage();
   let host = "";
   if (isDevMode()) {
-    host = import.meta.env.VITE_DEVICE_HOST_NAME;
+    host = import.meta.env.VITE_DEVICE_HOST_NAME || "dap.local";
   } else {
     host = window.location.host
   }
@@ -55,8 +55,10 @@ onUnmounted(() => {
 </script>
 
 <template>
-  <header>
-    <nav-bar/>
-  </header>
-  <RouterView/>
+  <div class="flex flex-col h-screen">
+    <header>
+      <nav-bar/>
+    </header>
+    <RouterView/>
+  </div>
 </template>
