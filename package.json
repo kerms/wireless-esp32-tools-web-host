@@ -5,6 +5,7 @@
   "type": "module",
   "scripts": {
     "dev": ". ./set_env.sh && vite",
+    "devh": ". ./set_env.sh && vite --host",
     "build": "run-p type-check \"build-only {@}\" --",
     "preview": ". ./set_env.sh && vite preview",
     "build-only": ". ./set_env.sh && vite build",
@@ -14,7 +15,8 @@
     "format": "prettier --write src/"
   },
   "dependencies": {
-    "element-plus": "^2.6.1",
+    "@vueuse/core": "^10.9.0",
+    "element-plus": "^2.7.3",
     "mitt": "^3.0.1",
     "pinia": "^2.1.7",
     "vue": "^3.4.21",
