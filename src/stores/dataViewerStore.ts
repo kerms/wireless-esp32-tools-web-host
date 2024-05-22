@@ -403,7 +403,9 @@ export const useDataViewerStore = defineStore('text-viewer', () => {
     }
 
     function addItem(item: Uint8Array, isRX: boolean, doSend: boolean = false, type: number = 0) {
-
+        if (!acceptIncomingData.value && isRX) {
+            return;
+        }
         const t = new Date();
 
         // dataArchive.push({
@@ -425,9 +427,13 @@ export const useDataViewerStore = defineStore('text-viewer', () => {
                 newArr.set(computedSuffixValue.value, computedPrefixValue.value.length + item.length);
                 item = newArr;
             }
-            if (doSend) {
-                /* INFO: hard coded for the moment */
-                uart_send_msg(item);
+            if (acceptIncomingData.value) {
+                if (doSend) {
+                    /* INFO: hard coded for the moment */
+                    uart_send_msg(item);
+                }
+            } else {
+                type = 1;
             }
             TxTotalByteCount.value += item.length;
             TxByteCount.value = item.length;

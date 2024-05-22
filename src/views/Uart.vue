@@ -63,16 +63,11 @@
 
 <script setup lang="ts">
 import {onMounted, onUnmounted, reactive, type Ref, ref, type UnwrapRef, watch} from "vue";
-import {breakpointsTailwind, useBreakpoints, useWindowSize} from '@vueuse/core'
+import {breakpointsTailwind, useBreakpoints} from '@vueuse/core'
 import {useDataViewerStore} from '@/stores/dataViewerStore';
 import * as api from '@/api';
+import {ControlEvent} from '@/api';
 import * as uart from '@/api/apiUart';
-import * as bin from '@/api/binDataDef';
-import * as data_flow from '@/api/apiDataFlow';
-import textDataViewer from "@/views/text-data-viewer/textDataViewer.vue";
-import textDataConfig from "@/views/text-data-viewer/textDataConfig.vue"
-import {registerModule} from "@/router/msgRouter";
-import {type ApiBinaryMsg} from "@/api/binDataDef";
 import {
   type IUartMsgBaud,
   type IUartMsgConfig,
@@ -81,12 +76,17 @@ import {
   uart_set_baud,
   uart_set_config,
   WtUartCmd
-} from "@/api/apiUart";
+} from '@/api/apiUart';
+import {type ApiBinaryMsg} from '@/api/binDataDef';
+import {wt_data_flow_attach_cur_to_sender} from '@/api/apiDataFlow';
+import textDataViewer from "@/views/text-data-viewer/textDataViewer.vue";
+import textDataConfig from "@/views/text-data-viewer/textDataConfig.vue"
+import {registerModule} from "@/router/msgRouter";
 import {isDevMode} from "@/composables/buildMode";
-import {ControlEvent} from "@/api";
-import {wt_data_flow_attach_cur_to_sender} from "@/api/apiDataFlow";
+import {useWsStore} from "@/stores/websocket";
 
 const store = useDataViewerStore()
+const wsStore = useWsStore()
 
 const firstWinResizeRef = ref(document.body);
 const thirdWinResizeRef = ref(document.body);
@@ -94,7 +94,6 @@ const win1Ref = ref(document.body);
 const win2Ref = ref(document.body);
 
 const breakpoints = useBreakpoints(breakpointsTailwind)
-const windowSize = useWindowSize()
 
 const layoutConf = reactive({
   isSmall: breakpoints.smaller("sm"),
@@ -111,15 +110,6 @@ const layoutOptions = [{
 }]
 
 const layoutMode = ref(layoutOptions[0].value);
-
-const displayOptions = [{
-  label: '默认显示',
-  value: 'auto'
-}, {
-  label: '手动显示',
-  value: 'manual'
-}]
-const displayMode = ref(displayOptions[0].value);
 
 interface WinProperty {
   show: boolean;
@@ -464,6 +454,7 @@ onMounted(() => {
   document.addEventListener("mouseup", stopResize, false);
   document.addEventListener("touchend", stopResize, false);
   updateUartData();
+  store.acceptIncomingData = wsStore.state === ControlEvent.CONNECTED;
 });
 
 onUnmounted(() => {

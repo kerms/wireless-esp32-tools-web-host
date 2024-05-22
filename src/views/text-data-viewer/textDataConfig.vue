@@ -86,7 +86,9 @@
             <el-form-item label=" ">
               <div class="flex">
                 <el-button :type="store.acceptIncomingData ? 'danger': 'success'"
-                           :disabled="wsStore.state !== ControlEvent.CONNECTED">
+                           :disabled="wsStore.state !== ControlEvent.CONNECTED"
+                           @click="store.acceptIncomingData = !store.acceptIncomingData"
+                >
                   {{ store.acceptIncomingData ? "停止数据收发" : "开始数据收发" }}
                 </el-button>
               </div>
