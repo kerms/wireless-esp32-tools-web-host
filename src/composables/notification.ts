@@ -2,7 +2,7 @@ import {ElMessage, ElNotification} from "element-plus";
 
 type NotificationType = 'error'  | 'warning' | 'info' | 'success' ;
 
-export function globalNotify(msg: string, type: NotificationType) {
+export function globalNotify(msg: string, type: NotificationType = "info") {
     ElMessage({
         message: msg,
         grouping: true,
@@ -13,7 +13,7 @@ export function globalNotify(msg: string, type: NotificationType) {
     })
 }
 
-export function globalNotifyRightSide(msg: string, type: NotificationType) {
+export function globalNotifyRightSide(msg: string, type: NotificationType = "info") {
     ElNotification({
         message: msg,
         type: type,

@@ -48,7 +48,7 @@
                 </el-select>
               </div>
             </el-form-item>
-            <p class="text-xs">实际波特率:{{store.uartBaudReal}}</p>
+            <p class="text-xs">实际波特率:{{ store.uartBaudReal }}</p>
 
             <el-form-item label="数据位" class="mb-2">
               <el-select v-model="store.uartConfig.data_bits" :teleported="false" placeholder="Select">
@@ -141,6 +141,74 @@
 
             <el-collapse-item name="2">
               <template #title>
+                断帧策略
+              </template>
+              <VueDraggable v-model="store.frameBreakRules" target="tbody" handle=".sort-target:not(:first-child)"
+                            :animation="150"
+                            :on-move="checkMove">
+                <table class="w-full bg-white">
+                  <thead>
+                  <tr class="text-sm h-7">
+                    <th>优先级</th>
+                    <th>
+                      <div class="flex justify-center">
+                        规则
+                        <el-tooltip placement="top" effect="light">
+                          <template #content>
+                            <p>超时=-1： 禁用超时断帧</p>
+                            <p>超时=0： 当机立断，收到任何数据都视为完整数据</p>
+                            <p>匹配断后：典型\n的场景</p>
+                            <p>匹配断前：用于有特殊帧头的场景</p>
+                            <p>固定字节断帧：传输大量数据，比如可以每隔1024字节断帧，方便查看数据</p>
+                          </template>
+                          <InlineSvg name="help" class="w-4 text-gray-500 cursor-help"></InlineSvg>
+                        </el-tooltip>
+                      </div>
+                    </th>
+                    <th>值</th>
+                  </tr>
+                  </thead>
+                  <tbody class="text-xs text-center">
+                  <tr v-for="(item, index) in store.frameBreakRules" :key="index"
+                      :class="item.draggable ? '' : 'cursor-no-drop'">
+                    <td :class="item.draggable ? 'sort-target' : 'cursor-no-drop'">
+                      {{ item.draggable ? index : 'NaN' }}
+                    </td>
+                    <td :class="item.draggable ? 'sort-target' : 'cursor-no-drop'">{{ item.name }}</td>
+                    <td>
+                      <div v-if="item.type === 'number'">
+                        <el-input-number v-model="item.ref" :min="item.min || 0" size="small" style="width: 100px"/>
+                      </div>
+                      <div v-else>
+                        <el-input class="break-input" v-model="item.ref" placeholder="文本;支持\n\x" size="small"
+                                  style="width: 100px">
+                          <template #prepend>
+                            <el-button size="small" @click="store.frameBreakAfterSequence = false">
+                              <span
+                                  :class="store.frameBreakAfterSequence ? 'text-gray-400' : 'text-blue-400 font-bold'">
+                              断
+                              </span>
+                            </el-button>
+                          </template>
+                          <template #append>
+                            <el-button size="small" @click="store.frameBreakAfterSequence = true">
+                              <span
+                                  :class="store.frameBreakAfterSequence ? 'text-blue-400 font-bold' : 'text-gray-300'">
+                              断
+                              </span>
+                            </el-button>
+                          </template>
+                        </el-input>
+                      </div>
+                    </td>
+                  </tr>
+                  </tbody>
+                </table>
+              </VueDraggable>
+            </el-collapse-item>
+
+            <el-collapse-item name="3">
+              <template #title>
                 其他
               </template>
               <template #default>
@@ -179,7 +247,8 @@
                       <el-checkbox border v-model="store.dataFilterAutoUpdate">新数据自动刷新</el-checkbox>
                     </el-tooltip>
 
-                    <el-tooltip content="提高间隔可减少CPU资源的使用" placement="right" effect="light" :show-after="500">
+                    <el-tooltip content="提高间隔可减少CPU资源的使用" placement="right" effect="light"
+                                :show-after="500">
                       <div class="flex gap-4 p-2">
                         <el-text>数据显示刷新间隔(ms)</el-text>
                         <el-input-number
@@ -255,17 +324,20 @@
 </template>
 
 <script setup lang="ts">
+import {VueDraggable} from 'vue-draggable-plus'
 import {ref} from "vue";
 import {useDataViewerStore} from "@/stores/dataViewerStore";
 import {useWsStore} from "@/stores/websocket";
 import {globalNotify} from "@/composables/notification";
 import {ControlEvent} from "@/api";
+import type {MoveEvent} from "sortablejs";
+import InlineSvg from "@/components/InlineSvg.vue";
 
 const store = useDataViewerStore()
 const wsStore = useWsStore()
-const collapseActiveName = ref(["1", "2"])
+const collapseActiveName = ref(["1", "2", "3"])
 
-const uartCustomBaud = ref(9600)
+const uartCustomBaud = ref(114514)
 
 const uartDataBitsOptions = [
   {
@@ -318,6 +390,12 @@ const onUseCustomUartBaud = () => {
   }
 }
 
+function checkMove(event: MoveEvent) {
+  // Find index of related element
+  const toIndex: number = Array.from(event.to.children).indexOf(event.related);
+  return !!store.frameBreakRules[toIndex].draggable;
+}
+
 </script>
 
 <style scoped>
@@ -335,6 +413,23 @@ const onUseCustomUartBaud = () => {
 
 .custom-tabs :deep(.el-collapse-item__wrap) {
   transition: all 0s; /* Customize the duration and easing */
+}
+
+.sortable-chosen {
+  background-color: var(--el-color-primary-light-9);
+}
+
+.sort-target {
+  cursor: move;
+}
+
+tr td {
+  @apply p-1;
+}
+
+.break-input :deep(.el-input-group__prepend), .break-input :deep(.el-input-group__append) {
+  background-color: unset;
+  @apply p-0 min-w-6
 }
 
 </style>

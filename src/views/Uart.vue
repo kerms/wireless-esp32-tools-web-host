@@ -382,7 +382,7 @@ const onUartBinaryMsg = (msg: ApiBinaryMsg) => {
   }
 
   /* UART_NUM_1 msg */
-  store.addItem(new Uint8Array(msg.payload), true);
+  store.addSegment(new Uint8Array(msg.payload), true);
 };
 
 const onDataFlowJsonMsg = (msg: api.ApiJsonMsg) => {

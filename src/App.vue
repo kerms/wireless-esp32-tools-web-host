@@ -11,6 +11,7 @@ import {ControlEvent, ControlMsgType} from "@/api";
 import {routeCtrlMsg, routeModuleServerMsg} from "@/router/msgRouter";
 import {globalNotify} from "@/composables/notification";
 import {isDevMode} from "@/composables/buildMode";
+import {ElMessageBox} from "element-plus";
 
 const wsState = useWsStore();
 
@@ -47,6 +48,9 @@ onMounted(() => {
   websocketService = getWebsocketService();
   websocketService.init(host, onServerMsg, onClientCtrl);
   changeFavicon();
+  ElMessageBox.alert('欢迎参与允斯无线串口助手固件内侧，有任何问题请在Q群踢群主：642246000', '2024-05-24', {
+    confirmButtonText: '好的',
+  })
 });
 
 onUnmounted(() => {

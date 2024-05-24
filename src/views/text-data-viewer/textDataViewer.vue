@@ -18,7 +18,7 @@
     </el-popover>
 
     <div class="flex">
-      <el-checkbox size="small" v-model="store.forceToBottom" label="强制滚动至底部" border/>
+      <el-checkbox size="small" v-model="store.forceToBottom" label="自动滚动至底部" border/>
       <el-tooltip
           class="box-item"
           effect="light"
@@ -60,19 +60,19 @@
     </div>
 
 
-        <div class="flex">
-          <el-button size="small" @click="addItem(1)">add1</el-button>
-          <el-button size="small" @click="addItem(10)">add10</el-button>
-          <el-button size="small" @click="addItem(100)">add100</el-button>
-          <el-button size="small" @click="addItem(1000)">add1000</el-button>
-          <el-button size="small" @click="scrollToBottom">scrollToBottom</el-button>
+<!--        <div class="flex">-->
+<!--          <el-button size="small" @click="addItem(1)">add1</el-button>-->
+<!--          <el-button size="small" @click="addItem(10)">add10</el-button>-->
+<!--          <el-button size="small" @click="addItem(100)">add100</el-button>-->
+<!--          <el-button size="small" @click="addItem(1000)">add1000</el-button>-->
+<!--          <el-button size="small" @click="scrollToBottom">scrollToBottom</el-button>-->
 <!--          <el-button @click="toggleAutoBottom">autoBot: {{ forceToBottom }}</el-button>-->
 <!--          <el-checkbox size="small" v-model="store.forceToBottom" :label="'autoBot:' + store.forceToBottom" border></el-checkbox>-->
 <!--          <el-button>{{ count }}, {{ items.length }}, {{ vuetifyVirtualScrollBarRef.scrollTop }},-->
 <!--            {{ vuetifyVirtualScrollBarRef.clientHeight }}, {{ vuetifyVirtualScrollBarRef.scrollHeight }}-->
 <!--          </el-button>-->
 <!--          <el-button @click="updateScroll">{{ scrollTop }}, {{ clientHeight }}, {{ scrollHeight }}</el-button>-->
-        </div>
+<!--        </div>-->
 
 <!--    <div>-->
 <!--      <el-popover-->
@@ -93,7 +93,7 @@
 <!--    </div>-->
   </div>
 
-  <div class="flex flex-grow overflow-hidden border-2 scroll-m-2">
+  <div class="flex flex-grow overflow-hidden border-2 rounded scroll-m-2">
     <v-virtual-scroll
         v-if="store.showVirtualScroll"
         :items="store.dataFiltered"
@@ -145,7 +145,6 @@
               <span>{{ item.time }}</span>TX-►|</p>
             <p class="text-nowrap text-sm text-amber-800" v-else type="primary" v-show="store.showTimestamp">
               <span>{{ item.time }}</span>未发送►|</p>
-
             <p v-show="store.showText"
                v-html="item.str"></p>
           </div>
@@ -162,6 +161,18 @@
         </div>
       </template>
     </v-virtual-scroll>
+  </div>
+
+  <div class="shrink-0 flex max-h-14 mt-0.5 text-xs">
+    <div class="flex shrink-0">
+      <el-tooltip content="未满足断帧规则的数据（如：未超时），暂时实时显示在此区域。" effect="light">
+        <InlineSvg name="help" class="w-3.5 h-3.5 text-gray-500 cursor-help"></InlineSvg>
+      </el-tooltip>
+      <p>►</p>
+    </div>
+    <div class="p-0.5 border-2 rounded w-full overflow-auto font-mono text-nowrap">
+      <p v-html="store.RxRemainHexdump"></p>
+    </div>
   </div>
 
   <div class="shrink-0 min-h-6 flex gap-2 justify-between overflow-y-scroll">
@@ -196,14 +207,14 @@
       </el-link>
     </div>
     <div class="flex gap-2">
-      <el-link @click="showTxTotalByte = !showTxTotalByte">
+      <el-link>
         <el-tag class="font-mono font-bold" size="small">
-          {{ showTxTotalByte ? `TX统计:${store.TxTotalByteCount}B` : `上个TX帧:${store.TxByteCount}B` }}
+          {{ `TX:${store.TxByteCount}B/${store.TxTotalByteCount}B` }}
         </el-tag>
       </el-link>
-      <el-link type="success" @click="showRxTotalByte = !showRxTotalByte">
+      <el-link type="success">
         <el-tag class="font-mono font-bold" size="small" type="success">
-          {{ showRxTotalByte ? `RX统计:${store.RxTotalByteCount}B` : `上个RX帧:${store.RxByteCount}B` }}
+          {{ `RX:${store.RxByteCount}B/${store.RxTotalByteCount}B` }}
         </el-tag>
       </el-link>
       <div class="flex align-center">
@@ -238,10 +249,9 @@ import {useDataViewerStore} from "@/stores/dataViewerStore";
 import InlineSvg from "@/components/InlineSvg.vue";
 import TextDataConfig from "@/views/text-data-viewer/textDataConfig.vue";
 import {debouncedWatch} from "@vueuse/core";
+import {globalNotify} from "@/composables/notification";
 
 const count = ref(0);
-const showTxTotalByte = ref(false);
-const showRxTotalByte = ref(false);
 const vuetifyVirtualScrollBarRef = ref(document.body);
 const vuetifyVirtualScrollContainerRef = ref(document.body);
 
@@ -423,6 +433,9 @@ const handleScroll = (ev: Event) => {
     if (vuetifyVirtualScrollBarRef.value.scrollTop - lastScrollHeight < 0) {
       store.forceToBottom = false;
     }
+  } else if ((vuetifyVirtualScrollBarRef.value.scrollHeight -
+      vuetifyVirtualScrollBarRef.value.scrollTop) <= vuetifyVirtualScrollBarRef.value.clientHeight) {
+      store.forceToBottom = true;
   }
   lastScrollHeight = vuetifyVirtualScrollBarRef.value.scrollTop;
 };
@@ -444,6 +457,11 @@ function handleTextboxKeydown(ev: KeyboardEvent) {
 }
 
 function onSendClick() {
+  if (!uartInputTextBox.value) {
+    globalNotify("发送框无数据发送")
+    return;
+  }
+
   if (store.acceptIncomingData) {
     if (isSendTextFormat.value) {
       store.addString(uartInputTextBox.value, false, true);

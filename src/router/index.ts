@@ -16,7 +16,7 @@ const router = createRouter({
             name: 'home',
             meta: {title: translate("page.home")},
             // component: Wifi
-            redirect: () => '/wifi',
+            redirect: () => '/uart',
         }, {
             path: '/home:ext(.*)',
             meta: {title: translate("page.home")},
