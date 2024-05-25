@@ -137,7 +137,7 @@ function u8toHexdump(buffer: Uint8Array) {
 function strToHTML(str: string) {
     return str.replace(/\n/g, '<br>') // Replace newline with <br> tag
         .replace(/\t/g, '&emsp;') // Replace tab with spaces (or you could use '&nbsp;' for single spaces)
-        .replace(/ /g, '&nbsp;');
+        .replace(/ /g, ' ');
 }
 
 function isArrayContained(subArray: Uint8Array, mainArray: Uint8Array,
@@ -376,10 +376,14 @@ export const useDataViewerStore = defineStore('text-viewer', () => {
         } else {
             RxSegment = new Uint8Array();
         }
-        RxRemainHexdump.value = u8toHexdump(RxSegment);
 
         for (let i = 0; i < frames.length; i++) {
             addItem(frames[i], isRX, doSend);
+        }
+
+        if (RxSegment.length > 8192) {
+            addItem(RxSegment, isRX, doSend);
+            RxSegment = new Uint8Array();
         }
     }
 
@@ -408,6 +412,11 @@ export const useDataViewerStore = defineStore('text-viewer', () => {
     const TxHexdumpColor = ref("#ecf4ff");
     const TxTotalByteCount = ref(0);
     const TxByteCount = ref(0);
+
+    let TxByteCountLocal = 0;
+    let TxTotalByteCountLocal = 0;
+    let RxByteCountLocal = 0;
+    let RxTotalByteCountLocal = 0;
 
     const enableFilter = ref(true);
     const forceToBottom = ref(true);
@@ -511,9 +520,19 @@ export const useDataViewerStore = defineStore('text-viewer', () => {
         }
     }, {immediate: true});
 
+    /* delayed value update, prevent quick unnecessary update */
     setInterval(() => {
         dataBufLength.value = dataBuf.length;
-    }, 500);
+        TxByteCount.value = TxByteCountLocal;
+        TxTotalByteCount.value = TxTotalByteCountLocal;
+        RxByteCount.value = RxByteCountLocal;
+        RxTotalByteCount.value = RxTotalByteCountLocal;
+        if (RxSegment.length) {
+            RxRemainHexdump.value = u8toHexdump(RxSegment);
+        } else {
+            RxRemainHexdump.value = "";
+        }
+    }, 200);
 
     function addString(item: string, isRX: boolean = false, doSend: boolean = false, type: number = 0) {
         const encoder = new TextEncoder();
@@ -594,8 +613,8 @@ export const useDataViewerStore = defineStore('text-viewer', () => {
         // });
 
         if (isRX) {
-            RxTotalByteCount.value += item.length;
-            RxByteCount.value = item.length;
+            RxTotalByteCountLocal += item.length;
+            RxByteCountLocal = item.length;
         } else {
             /* append prefix and suffix */
             if (computedPrefixValue.value.length || computedSuffixValue.value.length) {
@@ -614,8 +633,8 @@ export const useDataViewerStore = defineStore('text-viewer', () => {
             } else {
                 type = 1;
             }
-            TxTotalByteCount.value += item.length;
-            TxByteCount.value = item.length;
+            TxTotalByteCountLocal += item.length;
+            TxByteCountLocal = item.length;
         }
 
         let str = ""
@@ -722,9 +741,9 @@ export const useDataViewerStore = defineStore('text-viewer', () => {
 
     function clearByteCount(isRX: boolean) {
         if (isRX) {
-            RxTotalByteCount.value = 0;
+            RxTotalByteCountLocal = 0;
         } else {
-            TxTotalByteCount.value = 0;
+            TxTotalByteCountLocal = 0;
         }
     }
 
@@ -734,11 +753,13 @@ export const useDataViewerStore = defineStore('text-viewer', () => {
         dataBufLength.value = 0;
         batchStartIndex = 0;
 
-        RxByteCount.value = 0;
-        RxTotalByteCount.value = 0;
+        RxByteCountLocal = 0;
+        RxTotalByteCountLocal = 0;
+        TxByteCountLocal = 0;
+        TxTotalByteCountLocal = 0;
 
-        TxByteCount.value = 0;
-        TxTotalByteCount.value = 0;
+        RxSegment = new Uint8Array();
+        RxRemainHexdump.value = "";
     }
 
     function clearFilteredBuff() {

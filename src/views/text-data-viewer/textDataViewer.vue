@@ -103,8 +103,8 @@
         :class="[store.enableLineWrap ? 'break-all' : 'text-nowrap']"
     >
       <template v-slot:default="{ item, }">
-        <div>
-          <div class="flex">
+        <div class="">
+          <div class="flex" :class="[store.enableLineWrap ? 'whitespace-pre-wrap' : 'whitespace-pre']">
             <p class="text-nowrap text-sm text-lime-500" v-if="item.isRX" type="success" v-show="store.showTimestamp">
               <span>{{ item.time }}</span>◄-RX|</p>
             <p class="text-nowrap text-sm text-sky-500" v-else-if="item.type === 0" type="primary" v-show="store.showTimestamp">
@@ -115,10 +115,10 @@
             <p v-show="store.showText"
                v-html="item.str"></p>
           </div>
-          <div class="flex text-wrap">
+          <div class="flex">
             <p v-show="store.showHex" class="">{{ item.hex }}</p>
           </div>
-          <div class="flex">
+          <div class="flex whitespace-pre">
             <p v-show="store.showHexdump"
                class="text-nowrap"
                :style="{ 'background-color': item.isRX ? store.RxHexdumpColor : store.TxHexdumpColor }"
@@ -138,7 +138,7 @@
     >
       <template v-slot:default="{ item, }">
         <div>
-          <div class="flex">
+          <div class="flex" :class="[store.enableLineWrap ? 'whitespace-pre-wrap' : 'whitespace-pre']">
             <p class="text-nowrap text-sm text-lime-500" v-if="item.isRX" type="success" v-show="store.showTimestamp">
               <span>{{ item.time }}</span>◄-RX|</p>
             <p class="text-nowrap text-sm text-sky-500" v-else-if="item.type === 0" type="primary" v-show="store.showTimestamp">
@@ -148,10 +148,10 @@
             <p v-show="store.showText"
                v-html="item.str"></p>
           </div>
-          <div class="flex text-wrap">
+          <div class="flex">
             <p v-show="store.showHex" class="">{{ item.hex }}</p>
           </div>
-          <div class="flex">
+          <div class="flex whitespace-pre">
             <p v-show="store.showHexdump"
                class="text-nowrap"
                :style="{ 'background-color': item.isRX ? store.RxHexdumpColor : store.TxHexdumpColor }"
@@ -165,7 +165,7 @@
 
   <div class="shrink-0 flex max-h-14 mt-0.5 text-xs">
     <div class="flex shrink-0">
-      <el-tooltip content="未满足断帧规则的数据（如：未超时），暂时实时显示在此区域。" effect="light">
+      <el-tooltip content="未满足断帧规则的数据（如：未超时），暂时实时显示在此区域。超过8192字节，自动断帧；" effect="light">
         <InlineSvg name="help" class="w-3.5 h-3.5 text-gray-500 cursor-help"></InlineSvg>
       </el-tooltip>
       <p>►</p>
@@ -209,12 +209,12 @@
     <div class="flex gap-2">
       <el-link>
         <el-tag class="font-mono font-bold" size="small">
-          {{ `TX:${store.TxByteCount}B/${store.TxTotalByteCount}B` }}
+          {{ `TX(B):${store.TxByteCount}/ ${store.TxTotalByteCount}` }}
         </el-tag>
       </el-link>
       <el-link type="success">
         <el-tag class="font-mono font-bold" size="small" type="success">
-          {{ `RX:${store.RxByteCount}B/${store.RxTotalByteCount}B` }}
+          {{ `RX(B):${store.RxByteCount}/ ${store.RxTotalByteCount}` }}
         </el-tag>
       </el-link>
       <div class="flex align-center">
@@ -222,7 +222,7 @@
           <el-link class="flex" @click="store.clearDataBuff" type="warning">
             <InlineSvg class="h-5" name="trash"></InlineSvg>
           </el-link>
-          <span class="align-text-bottom">缓存帧数: {{ store.dataBufLength }}/20000</span>
+          <span class="align-text-bottom">缓存帧数: {{ store.dataBufLength }}/30000</span>
         </el-tag>
       </div>
     </div>
@@ -336,8 +336,7 @@ function addItem(nr: number) {
 function scrollToBottom() {
   nextTick(() => {
     const scrollerElement = vuetifyVirtualScrollBarRef.value; // Adjust according to your setup
-    // scrollerElement.scrollTop = scrollerElement.scrollHeight;
-    scrollerElement.scrollTo(scrollerElement.scrollLeft, scrollerElement.scrollHeight);
+    scrollerElement.scrollTop = scrollerElement.scrollHeight;
   });
 }
 
@@ -427,6 +426,12 @@ watch(() => store.filterChanged, (value) => {
     store.filterChanged = false;
   }
 })
+
+watch(() => store.showVirtualScroll, () => {
+  if (store.forceToBottom) {
+    scrollToBottom();
+  }
+});
 
 const handleScroll = (ev: Event) => {
   if (store.forceToBottom) {
