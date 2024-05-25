@@ -11,6 +11,7 @@ import {AnsiUp} from 'ansi_up'
 import {debouncedWatch} from "@vueuse/core";
 import {type IUartConfig, uart_send_msg} from "@/api/apiUart";
 import {isDevMode} from "@/composables/buildMode";
+import {useUartStore} from "@/stores/useUartStore";
 
 interface IDataArchive {
     time: number;
@@ -180,6 +181,8 @@ function generateBaudArr(results: { baud: number; }[]) {
 }
 
 export const useDataViewerStore = defineStore('text-viewer', () => {
+    const uartStore = useUartStore()
+
     /* private value */
     const predefineColors = [
         '#f0f9eb',
@@ -628,7 +631,7 @@ export const useDataViewerStore = defineStore('text-viewer', () => {
             if (acceptIncomingData.value) {
                 if (doSend) {
                     /* INFO: hard coded for the moment */
-                    uart_send_msg(item);
+                    uart_send_msg(item, uartStore.uartNum);
                 }
             } else {
                 type = 1;

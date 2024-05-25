@@ -1,6 +1,31 @@
 import {type ApiJsonMsg} from '@/api'
 import * as api from "@/api/index";
 
+export enum WtDataFlowType {
+    NONE = 0,
+    SOCKET = 0x10,
+    WS_SERVER = 0x11,
+    WS_CLIENT,
+    WSS_SERVER,
+    WSS_CLIENT,
+    TCP_SERVER,
+    TCP_CLIENT,
+    TCP_TLS_SERVER,
+    TCP_TLS_CLIENT,
+    UDP_SERVER,
+    UDP_CLIENT,
+    PERIPHERAL = 0x80,
+    GPIO = 0x81,
+    UART = 0x82,
+    I2C,
+    I3C,
+    SPI,
+    I2S,
+    CAN,
+    RMT,
+    USB,
+}
+
 export enum WtDataFlowCmd {
     UNKNOWN              = 0,
     GET_INS_LIST         = 1,
@@ -18,6 +43,25 @@ export enum WtDataFlowCmd {
 export interface IWtDataFlowJsonMsg extends ApiJsonMsg {
     data_type?: 3 | 4,
     ins_idx?: number,
+}
+
+export interface IPeriphInfo {
+    periph_num: number;
+}
+
+export interface ISocketInfo {
+    foreign_port: number;
+    foreign_ip: string;
+    local_port: number;
+}
+
+export interface IInstanceList extends ApiJsonMsg {
+    instances: {
+        ins_idx: number,
+        mod_idx: number,
+        mod_type: number,
+        port_info: ISocketInfo | IPeriphInfo;
+    }[],
 }
 
 export function wt_data_flow_get_instance_list() {

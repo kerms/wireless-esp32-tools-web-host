@@ -236,16 +236,8 @@
                   </el-input>
 
                   <div class="border rounded flex flex-col">
-                    <el-tooltip
-                        class="box-item"
-                        effect="light"
-                        placement="right-start"
-                    >
-                      <template #content>
 
-                      </template>
-                      <el-checkbox border v-model="store.dataFilterAutoUpdate">新数据自动刷新</el-checkbox>
-                    </el-tooltip>
+                    <el-checkbox border v-model="store.dataFilterAutoUpdate">新数据自动刷新</el-checkbox>
 
                     <el-tooltip content="提高间隔可减少CPU资源的使用" placement="right" effect="light"
                                 :show-after="500">

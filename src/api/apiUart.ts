@@ -44,7 +44,7 @@ export interface IUartMsgBaud extends ApiJsonMsg {
     baud: number;
 }
 
-export function uart_send_msg(payload: Uint8Array, sub_mod: number = 1) {
+export function uart_send_msg(payload: Uint8Array, sub_mod: number) {
     /* hard code uart num for now */
     const msg: ApiBinaryMsg = {
         sub_mod: sub_mod,
@@ -55,7 +55,7 @@ export function uart_send_msg(payload: Uint8Array, sub_mod: number = 1) {
     sendBinMsg(msg);
 }
 
-export function uart_get_baud(uart_num: number = 1) {
+export function uart_get_baud(uart_num: number) {
     const cmd = {
         cmd: WtUartCmd.GET_BAUD,
         module: WtModuleID.UART,
@@ -64,7 +64,7 @@ export function uart_get_baud(uart_num: number = 1) {
     sendJsonMsg(cmd);
 }
 
-export function uart_set_baud(baud: number, uart_num: number = 1) {
+export function uart_set_baud(baud: number, uart_num: number) {
     const cmd: IUartMsgBaud = {
         cmd: WtUartCmd.SET_BAUD,
         module: WtModuleID.UART,
@@ -74,7 +74,7 @@ export function uart_set_baud(baud: number, uart_num: number = 1) {
     sendJsonMsg(cmd);
 }
 
-export function uart_get_config(uart_num: number = 1) {
+export function uart_get_config(uart_num: number) {
     const cmd = {
         cmd: WtUartCmd.GET_CONFIG,
         module: WtModuleID.UART,
@@ -83,7 +83,7 @@ export function uart_get_config(uart_num: number = 1) {
     sendJsonMsg(cmd);
 }
 
-export function uart_set_config(uart_config: IUartConfig, uart_num: number = 1) {
+export function uart_set_config(uart_config: IUartConfig, uart_num: number) {
     const cmd: IUartMsgConfig = {
         cmd: WtUartCmd.SET_CONFIG,
         module: WtModuleID.UART,

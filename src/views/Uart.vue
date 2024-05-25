@@ -78,15 +78,17 @@ import {
   WtUartCmd
 } from '@/api/apiUart';
 import {type ApiBinaryMsg} from '@/api/binDataDef';
-import {wt_data_flow_attach_cur_to_sender} from '@/api/apiDataFlow';
+import * as df from '@/api/apiDataFlow';
 import textDataViewer from "@/views/text-data-viewer/textDataViewer.vue";
 import textDataConfig from "@/views/text-data-viewer/textDataConfig.vue"
 import {registerModule} from "@/router/msgRouter";
 import {isDevMode} from "@/composables/buildMode";
 import {useWsStore} from "@/stores/websocket";
+import {useUartStore} from "@/stores/useUartStore";
 
 const store = useDataViewerStore()
 const wsStore = useWsStore()
+const uartStore = useUartStore()
 
 const firstWinResizeRef = ref(document.body);
 const thirdWinResizeRef = ref(document.body);
@@ -376,18 +378,26 @@ const onUartBinaryMsg = (msg: ApiBinaryMsg) => {
     console.log("uart", msg);
   }
 
-  if (msg.sub_mod !== 1) {
-    /* ignore other num for the moment */
-    return;
-  }
-
-  /* UART_NUM_1 msg */
   store.addSegment(new Uint8Array(msg.payload), true);
 };
 
 const onDataFlowJsonMsg = (msg: api.ApiJsonMsg) => {
   if (isDevMode()) {
     console.log("Dflow Json", msg);
+  }
+
+  if (msg.cmd === df.WtDataFlowCmd.GET_INS_LIST) {
+    const instances = msg as df.IInstanceList;
+    if (instances.instances.length) {
+      if (instances.instances[0].mod_type === df.WtDataFlowType.UART) {
+        uartStore.uartNum = (instances.instances[0].port_info as df.IPeriphInfo).periph_num;
+        uart_get_baud(uartStore.uartNum);
+        uart_get_config(uartStore.uartNum);
+        if (isDevMode()) {
+          console.log("set UART num to ", uartStore.uartNum);
+        }
+      }
+    }
   }
 };
 
@@ -412,17 +422,16 @@ const onClientCtrl = (msg: api.ControlMsg) => {
 
 function updateUartData() {
   /* TODO: hard code for the moment, 0 is UART instance id (can be changed in the future) */
-  wt_data_flow_attach_cur_to_sender(0);
-  uart_get_baud();
-  uart_get_config();
+  df.wt_data_flow_get_instance_list();
+  df.wt_data_flow_attach_cur_to_sender(0);
 }
 
 watch(() => store.uartBaud, value => {
-  uart_set_baud(value);
+  uart_set_baud(value, uartStore.uartNum);
 });
 
 watch(() => store.uartConfig, value => {
-  uart_set_config(value);
+  uart_set_config(value, uartStore.uartNum);
 }, {deep: true});
 
 onMounted(() => {
