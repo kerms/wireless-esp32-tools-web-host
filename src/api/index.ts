@@ -34,6 +34,8 @@ export enum WtModuleID {
     WIFI = 1,
     DATA_FLOW = 2,
     UART = 4,
+    OTA = 5,
+    SYSTEM = 6,
 }
 
 export function sendJsonMsg(apiJsonMsg: ApiJsonMsg) {

@@ -1,6 +1,9 @@
 <script setup lang="ts">
+import {useSystemStore} from "@/stores/useSystemStore";
+
 const version = import.meta.env.VITE_APP_GIT_TAG || "v0.0.0";
 const compileTime = import.meta.env.VITE_APP_LAST_COMMIT || "1970-00-00";
+const sysStore = useSystemStore();
 </script>
 
 <template>
@@ -40,10 +43,11 @@ const compileTime = import.meta.env.VITE_APP_LAST_COMMIT || "1970-00-00";
           </el-descriptions-item>
         </el-descriptions>
       </el-collapse-item>
-      <el-collapse-item title="关于下位机">
+      <el-collapse-item title="关于调试器">
         <el-descriptions border :column="1" class="mt-5 description-style">
-          <el-descriptions-item label="官网"><a target="_blank" href="https://yunsi.studio/wireless-proxy">允斯工作室</a></el-descriptions-item>
-          <el-descriptions-item label="版本">-</el-descriptions-item>
+          <el-descriptions-item label="官网"><a target="_blank" href="https://yunsi.studio/wireless-debugger">https://yunsi.studio/wireless-debugger</a></el-descriptions-item>
+          <el-descriptions-item label="版本">{{ sysStore.curFmInfo.ver }}</el-descriptions-item>
+          <el-descriptions-item label="更新日期">{{ sysStore.curFmInfo.date }}</el-descriptions-item>
         </el-descriptions>
 
         <el-descriptions title="鸣谢" border :column="1" class="mt-5 description-style">

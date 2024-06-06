@@ -67,7 +67,7 @@
 
       <div class="flex flex-col justify-between m-4 mt-0">
         <ul>
-          <li v-for="(item, index) in menuItems" class="mb-1" :key="index">
+          <li v-for="(item, index) in sideBarItems" class="mb-1" :key="index">
             <router-link @click="sideMenuOpen=false" :title="item.name" :to="item.href" :class="[sideMenuItemClass, item?.class]">{{ item.name }}</router-link>
           </li>
         </ul>
@@ -147,10 +147,23 @@ type Item = {
 };
 
 const menuItems: Item[] = ([
-/*  {
-    name: translate("page.home"),
-    href: "/",
-  }, */
+  {
+    name: translate("page.uart"),
+    href: "/uart",
+  }, {
+    name: translate("page.wifi"),
+    href: "/wifi",
+  }, {
+    name: translate("page.feedback"),
+    href: "/feedback",
+  },
+]);
+
+const sideBarItems: Item[] = ([
+  /*  {
+      name: translate("page.home"),
+      href: "/",
+    }, */
   {
     name: translate("page.uart"),
     href: "/uart",
@@ -163,6 +176,9 @@ const menuItems: Item[] = ([
   }, {
     name: translate("page.feedback"),
     href: "/feedback",
+  }, {
+    name: translate("page.update"),
+    href: "/update",
   },
 ]);
 

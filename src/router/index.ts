@@ -5,6 +5,7 @@ import Feedback from '@/views/Feedback.vue'
 import About from '@/views/About.vue'
 import Uart from '@/views/Uart.vue'
 import Page404 from '@/views/404.vue'
+import Update from '@/views/Update.vue'
 import {translate} from "@/locales";
 
 
@@ -38,7 +39,12 @@ const router = createRouter({
             meta: {title: translate('page.feedback')},
             name: 'feedback',
             component: Feedback,
-        },   {
+        }, {
+            path: '/update:ext(.*)',
+            meta: {title: translate('page.update')},
+            name: 'update',
+            component: Update,
+        }, {
             path: '/:catchAll(.*)', // This will match all paths that aren't matched by above routes
             name: 'NotFound',
             component: Page404,

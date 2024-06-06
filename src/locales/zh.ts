@@ -16,5 +16,6 @@ export default {
         uart: "UART透传",
         feedback: "反馈",
         close: "关闭",
+        update: "更新",
     },
 }
