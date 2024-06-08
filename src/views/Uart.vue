@@ -22,13 +22,7 @@
       'min-w-80': layoutMode==='row', 'xl:min-w-96': layoutMode==='row'
     }"
          class="bg-gray-50 flex flex-col flex-shrink-0 min-h-32 overflow-auto p-2">
-
-
-      <div class="flex flex-col gap-5">
-        <el-text type="primary">快捷发送</el-text>
-        <el-text size="small">努力施工中</el-text>
-
-      </div>
+      <TextDataMacro></TextDataMacro>
     </div>
   </div>
 
@@ -85,6 +79,7 @@ import {registerModule} from "@/router/msgRouter";
 import {isDevMode} from "@/composables/buildMode";
 import {useWsStore} from "@/stores/websocket";
 import {useUartStore} from "@/stores/useUartStore";
+import TextDataMacro from "@/views/text-data-viewer/textDataMacro.vue";
 
 const store = useDataViewerStore()
 const wsStore = useWsStore()
