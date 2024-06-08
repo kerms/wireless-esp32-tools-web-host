@@ -70,6 +70,7 @@ import {ControlEvent, ControlMsgType, WtModuleID} from "@/api";
 import {registerModule, unregisterModule} from "@/router/msgRouter";
 import {useSystemStore} from "@/stores/useSystemStore";
 import {wt_sys_reboot} from "@/api/apiSystem";
+import {isDevMode} from "@/composables/buildMode";
 
 const sysStore = useSystemStore();
 const showHidden = ref(false)
@@ -150,7 +151,9 @@ const onClientMsg = (msg: ApiJsonMsg) => {
       break;
   }
 
-  console.log(msg);
+  if (isDevMode()) {
+    console.log(msg);
+  }
 };
 
 const onClientCtrl = (msg: ControlMsg) => {

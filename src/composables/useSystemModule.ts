@@ -2,6 +2,7 @@ import {useSystemStore} from "@/stores/useSystemStore";
 import {registerModule} from "@/router/msgRouter";
 import {type ApiJsonMsg, ControlEvent, type ControlMsg, ControlMsgType, WtModuleID} from "@/api";
 import {type ISysFmInfo, wt_sys_get_fm_info, WtSytemCmd} from "@/api/apiSystem";
+import {isDevMode} from "@/composables/buildMode";
 
 
 export function useSystemModule() {
@@ -30,8 +31,9 @@ export function useSystemModule() {
                 break;
             }
         }
-
-        console.log(msg);
+        if (isDevMode()) {
+            console.log(msg);
+        }
     }
 
     registerModule(WtModuleID.SYSTEM, {

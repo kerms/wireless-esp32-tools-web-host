@@ -184,10 +184,11 @@ function mouseResize(e: MouseEvent) {
       win1Ref.value.style.minWidth = f + "px";
       win1Ref.value.style.maxWidth = f + "px";
     } else {
-
-      console.log("Row clientX", e.clientX, "clientY", e.clientY,
-          "layerX", e.layerX, "layerY", e.layerY, "offsetX", e.offsetX, "offsetY", e.offsetY,
-          "pageX", e.pageX, "pageY", e.pageY, win2Ref.value.clientHeight);
+      if (isDevMode()) {
+        console.log("Row clientX", e.clientX, "clientY", e.clientY,
+            "layerX", e.layerX, "layerY", e.layerY, "offsetX", e.offsetX, "offsetY", e.offsetY,
+            "pageX", e.pageX, "pageY", e.pageY, win2Ref.value.clientHeight);
+      }
       win2Ref.value.style.minWidth = document.body.scrollWidth - f - win2.borderSize + "px";
       win2Ref.value.style.maxWidth = document.body.scrollWidth - f - win2.borderSize + "px";
     }
@@ -198,9 +199,11 @@ function mouseResize(e: MouseEvent) {
       win1Ref.value.style.minHeight = f - ctx.curHeightOffset + "px";
       win1Ref.value.style.maxHeight = f - ctx.curHeightOffset + "px";
     } else {
-      console.log("Col clientX", e.clientX, "clientY", e.clientY,
-          "layerX", e.layerX, "layerY", e.layerY, "offsetX", e.offsetX, "offsetY", e.offsetY,
-          "pageX", e.pageX, "pageY", e.pageY, curTarget.offsetWidth, ctx.curHeightOffset);
+      if (isDevMode()) {
+        console.log("Col clientX", e.clientX, "clientY", e.clientY,
+            "layerX", e.layerX, "layerY", e.layerY, "offsetX", e.offsetX, "offsetY", e.offsetY,
+            "pageX", e.pageX, "pageY", e.pageY, curTarget.offsetWidth, ctx.curHeightOffset);
+      }
       win2Ref.value.style.minHeight = ctx.curHeightOffset - f + "px";
       win2Ref.value.style.maxHeight = ctx.curHeightOffset - f + "px";
     }
