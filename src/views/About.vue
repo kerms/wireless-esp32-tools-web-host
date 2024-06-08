@@ -16,7 +16,6 @@ const sysStore = useSystemStore();
         <el-descriptions border :column="1" class="mt-5 description-style">
           <el-descriptions-item label="版本">{{ version }}</el-descriptions-item>
           <el-descriptions-item label="发布时间">{{ compileTime }}</el-descriptions-item>
-          <el-descriptions-item label="许可证">MIT</el-descriptions-item>
         </el-descriptions>
 
         <el-descriptions title="鸣谢" border :column="1" class="mt-5 description-style">

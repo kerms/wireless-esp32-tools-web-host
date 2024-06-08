@@ -143,7 +143,7 @@
               <template #title>
                 断帧策略
               </template>
-              <VueDraggable v-model="store.frameBreakRules" target="tbody" handle=".sort-target:not(:first-child)"
+              <VueDraggable v-model="store.frameBreakRules" target="tbody" handle=".sort-target"
                             :animation="150"
                             :on-move="checkMove">
                 <table class="w-full bg-white">
@@ -169,12 +169,11 @@
                   </tr>
                   </thead>
                   <tbody class="text-xs text-center">
-                  <tr v-for="(item, index) in store.frameBreakRules" :key="index"
-                      :class="item.draggable ? '' : 'cursor-no-drop'">
-                    <td :class="item.draggable ? 'sort-target' : 'cursor-no-drop'">
+                  <tr v-for="(item, index) in store.frameBreakRules" :key="index">
+                    <td :class="item.draggable ? 'sort-target' : ''">
                       {{ item.draggable ? index : 'NaN' }}
                     </td>
-                    <td :class="item.draggable ? 'sort-target' : 'cursor-no-drop'">{{ item.name }}</td>
+                    <td :class="item.draggable ? 'sort-target' : ''">{{ item.name }}</td>
                     <td>
                       <div v-if="item.type === 'number'">
                         <el-input-number v-model="item.ref" :min="item.min || 0" size="small" style="width: 100px"/>
