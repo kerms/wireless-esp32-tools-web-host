@@ -163,14 +163,14 @@
     </v-virtual-scroll>
   </div>
 
-  <div class="shrink-0 flex max-h-14 mt-0.5 text-xs">
+  <div class="shrink-0 flex h-8 mt-0.5 text-xs">
     <div class="flex shrink-0">
       <el-tooltip content="未满足断帧规则的数据（如：未超时），暂时实时显示在此区域。超过8192字节，自动断帧；" effect="light">
         <InlineSvg name="help" class="w-3.5 h-3.5 text-gray-500 cursor-help"></InlineSvg>
       </el-tooltip>
       <p>►</p>
     </div>
-    <div class="p-0.5 border-2 rounded w-full overflow-auto font-mono text-nowrap">
+    <div ref="RxHexDumpRef" class="p-0.5 border-2 rounded w-full overflow-scroll font-mono text-nowrap">
       <p v-html="store.RxRemainHexdump"></p>
     </div>
   </div>
@@ -265,10 +265,13 @@ const isHexStringValid = ref(false);
 const uartInputTextBox = ref("")
 const store = useDataViewerStore();
 
+const RxHexDumpRef = ref(document.body);
+
 let lastScrollHeight = 0;
 
 const mutationObserver = new MutationObserver(() => {
   if (store.forceToBottom) {
+    lastScrollHeight = vuetifyVirtualScrollBarRef.value.scrollTop;
     scrollToBottom();
   }
 });
@@ -424,6 +427,12 @@ watch(() => store.filterChanged, (value) => {
     scrollToTop()
     scrollToBottom();
     store.filterChanged = false;
+  }
+})
+
+watch(() => store.RxRemainHexdump, value => {
+  if (value) {
+    RxHexDumpRef.value.scrollTop = RxHexDumpRef.value.scrollHeight;
   }
 })
 
