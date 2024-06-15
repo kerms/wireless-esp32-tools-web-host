@@ -26,21 +26,21 @@
             </el-button>
           </el-tooltip>
 
-          <el-button @click="doUpdate" type="primary" :disabled="!canUpdate">
+          <el-button @click="doUpdate" type="primary" :disabled="!updateStore.canUpdate">
             更新
           </el-button>
         </div>
 
       </template>
-      <el-descriptions-item label="固件版本">{{ newFmInfo.fm_ver }}</el-descriptions-item>
-      <el-descriptions-item label="更新日期">{{ newFmInfo.upd_date }}</el-descriptions-item>
-      <el-descriptions-item label="固件大小">{{ newFmInfo.fm_size }}</el-descriptions-item>
+      <el-descriptions-item label="固件版本">{{ updateStore.newFmInfo.fm_ver }}</el-descriptions-item>
+      <el-descriptions-item label="更新日期">{{ updateStore.newFmInfo.upd_date }}</el-descriptions-item>
+      <el-descriptions-item label="固件大小">{{ updateStore.newFmInfo.fm_size }}</el-descriptions-item>
       <el-descriptions-item label="更新进度">
-        <el-alert v-if="updateStatus === 'OK'" title="更新已完成，重启后，刷新网页生效" type="success" show-icon :closable="false" />
-        <el-progress v-else :percentage="updateProgress" :format="format" :status="progressBarStatus"/>
+        <el-alert v-if="updateStore.updateStatus === 'OK'" title="更新已完成，重启后，刷新网页生效" type="success" show-icon :closable="false" />
+        <el-progress v-else :percentage="updateStore.updateProgress" :format="format" :status="updateStore.progressBarStatus"/>
       </el-descriptions-item>
       <el-descriptions-item label="更新内容">
-        <pre>{{ newFmInfo.upd_note }}</pre>
+        <pre>{{ updateStore.newFmInfo.upd_note }}</pre>
       </el-descriptions-item>
     </el-descriptions>
 
@@ -57,121 +57,25 @@
 
 <script setup lang="ts">
 import {onMounted, onUnmounted, ref} from "vue";
-import type {ApiJsonMsg, ControlMsg} from "@/api";
 import {
-  type IOTAFmInfo,
-  type IOTAProgress,
   wt_ota_do_update, wt_ota_do_url_update,
-  wt_ota_get_progress,
-  wt_ota_get_update_info,
-  WtOTACmd, WtOTAProgressStatus
+  wt_ota_get_progress, wt_ota_get_update_info,
 } from "@/api/apiOTA";
-import {ControlEvent, ControlMsgType, WtModuleID} from "@/api";
-import {registerModule, unregisterModule} from "@/router/msgRouter";
 import {useSystemStore} from "@/stores/useSystemStore";
 import {wt_sys_reboot} from "@/api/apiSystem";
-import {isDevMode} from "@/composables/buildMode";
+import {useUpdateStore} from "@/stores/useUpdateStore";
 
 const sysStore = useSystemStore();
+const updateStore = useUpdateStore();
 const showHidden = ref(false)
-
-const format = (percentage: number) => (percentage.toFixed(2) + '%')
-
-const canUpdate = ref(false);
-const updateProgress = ref(0);
-const updateStatus = ref('');
-
-const progressBarStatus = ref('');
 
 const directLinkUpdate = ref("");
 
-let progressIntervalID = -1;
-
-const newFmInfo = ref({
-  fm_size: 0,
-  fm_ver: "-",
-  upd_date: "-",
-  upd_note: "-",
-})
-const onClientMsg = (msg: ApiJsonMsg) => {
-  switch (msg.cmd as WtOTACmd) {
-    case WtOTACmd.WT_OTA_GET_UPDATE_INFO: {
-      const info = msg as IOTAFmInfo;
-      Object.assign(newFmInfo.value, info);
-      if (newFmInfo.value.fm_ver !== sysStore.curFmInfo.ver && newFmInfo.value.fm_ver[0] !== '-'
-          && updateStatus.value === 'IDLE') {
-        canUpdate.value = true;
-      }
-      break;
-    }
-    case WtOTACmd.WT_OTA_DO_UPDATE:
-      break;
-    case WtOTACmd.WT_OTA_GET_PROGRESS: {
-      const progress = msg as IOTAProgress;
-      updateStatus.value = progress.status;
-      if (progress.total_size !== 0) {
-        updateProgress.value = (progress.progress / progress.total_size) * 100;
-      } else {
-        updateProgress.value = 0;
-      }
-      if (progress.status === WtOTAProgressStatus.IDLE) {
-        if (newFmInfo.value.fm_ver !== sysStore.curFmInfo.ver && newFmInfo.value.fm_ver[0] !== '-') {
-          canUpdate.value = true;
-        }
-        if (progressIntervalID >= 0) {
-          clearInterval(progressIntervalID);
-          progressIntervalID = -1;
-        }
-        progressBarStatus.value = '';
-      } else if (progress.status === WtOTAProgressStatus.FAILED) {
-        if (progressIntervalID >= 0) {
-          clearInterval(progressIntervalID);
-          progressIntervalID = -1;
-        }
-        progressBarStatus.value = 'exception';
-      } else if (progress.status === WtOTAProgressStatus.IN_PROGRESS) {
-        if (progressIntervalID < 0) {
-          progressIntervalID = setInterval(() => {
-            wt_ota_get_progress();
-          }, 1000);
-        }
-        progressBarStatus.value = '';
-        canUpdate.value = false;
-      } else if (progress.status === WtOTAProgressStatus.OK) {
-        if (progressIntervalID >= 0) {
-          clearInterval(progressIntervalID);
-          progressIntervalID = -1;
-        }
-        canUpdate.value = false;
-        progressBarStatus.value = 'success';
-      }
-      break;
-    }
-    default:
-      break;
-  }
-
-  if (isDevMode()) {
-    console.log(msg);
-  }
-};
-
-const onClientCtrl = (msg: ControlMsg) => {
-  if (msg.type !== ControlMsgType.WS_EVENT) {
-    return
-  }
-
-  if (msg.data === ControlEvent.CONNECTED) {
-    wt_ota_get_update_info();
-    wt_ota_get_progress();
-  }
-};
+const format = (percentage: number) => (percentage.toFixed(2) + '%')
 
 function doUpdate() {
   wt_ota_do_update();
-  progressIntervalID = setInterval(() => {
-    wt_ota_get_progress();
-  }, 1000);
+  updateStore.setProgressInterval();
 }
 
 function doReboot() {
@@ -182,33 +86,20 @@ function doDirectLinkUpdate() {
   if (directLinkUpdate.value.length === 0) {
     return;
   }
-  progressIntervalID = setInterval(() => {
-    wt_ota_get_progress();
-  }, 1000);
+  updateStore.setProgressInterval();
   wt_ota_do_url_update(directLinkUpdate.value);
 }
 
 onMounted(() => {
-  registerModule(WtModuleID.OTA, {
-    ctrlCallback: onClientCtrl,
-    serverJsonMsgCallback: onClientMsg,
-    serverBinMsgCallback: () => {
-    },
-  });
-
   wt_ota_get_update_info();
   wt_ota_get_progress();
-
 });
 
 onUnmounted(() => {
-  unregisterModule(WtModuleID.OTA);
-  clearInterval(progressIntervalID);
-  progressIntervalID = -1;
+  updateStore.clearProgressInterval();
 });
 
 </script>
-
 
 <style scoped>
 .description-style :deep(.el-descriptions__label) {

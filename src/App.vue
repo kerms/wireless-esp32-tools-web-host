@@ -13,6 +13,7 @@ import {globalNotify} from "@/composables/notification";
 import {isDevMode} from "@/composables/buildMode";
 import {useSystemModule} from "@/composables/useSystemModule";
 import {useDataFlowModule} from "@/composables/useDataFlowModule";
+import {useUpdateModule} from "@/composables/useUpdateModule";
 
 const wsState = useWsStore();
 
@@ -52,6 +53,7 @@ onMounted(() => {
 
   useSystemModule();
   useDataFlowModule();
+  useUpdateModule();
 });
 
 onUnmounted(() => {

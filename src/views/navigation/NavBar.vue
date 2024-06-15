@@ -68,7 +68,10 @@
       <div class="flex flex-col justify-between m-4 mt-0">
         <ul>
           <li v-for="(item, index) in sideBarItems" class="mb-1" :key="index">
-            <router-link @click="sideMenuOpen=false" :title="item.name" :to="item.href" :class="[sideMenuItemClass, item?.class]">{{ item.name }}</router-link>
+              <router-link @click="sideMenuOpen=false" :title="item.name" :to="item.href" :class="[sideMenuItemClass, item?.class]">
+                {{ item.name }}
+                <el-badge v-if="item?.badge?.value" is-dot></el-badge>
+              </router-link>
           </li>
         </ul>
       </div>
@@ -105,18 +108,20 @@
 
 <script lang="ts" setup>
 import InlineSvg from "@/components/InlineSvg.vue";
-import {computed, ref} from "vue";
+import {computed, type Ref, ref} from "vue";
 import {useWsStore} from "@/stores/websocket";
 import {translate} from "@/locales";
 import {ControlEvent} from "@/api";
 import {useRoute} from "vue-router";
 import { useFullscreen } from '@vueuse/core'
+import {useUpdateStore} from "@/stores/useUpdateStore";
 
 const wsStore = useWsStore();
+const updateStore = useUpdateStore();
 const {isFullscreen, toggle} = useFullscreen();
 const route = useRoute();
 
-const sideMenuItemClass = "block p-4 text-sm font-semibold hover:bg-blue-50 hover:text-blue-600 rounded"
+const sideMenuItemClass = "block p-4 text-sm font-semibold hover:bg-blue-50 hover:text-blue-600 rounded flex"
 const sideMenuOpen = ref(false);
 const stateMenuOpen = ref(false)
 
@@ -144,6 +149,7 @@ type Item = {
   name: string;
   href: string;
   class?: string;
+  badge?: Ref<boolean>;
 };
 
 const menuItems: Item[] = ([
@@ -160,10 +166,6 @@ const menuItems: Item[] = ([
 ]);
 
 const sideBarItems: Item[] = ([
-  /*  {
-      name: translate("page.home"),
-      href: "/",
-    }, */
   {
     name: translate("page.uart"),
     href: "/uart",
@@ -179,6 +181,7 @@ const sideBarItems: Item[] = ([
   }, {
     name: translate("page.update"),
     href: "/update",
+    badge: computed(() => updateStore.canUpdate),
   },
 ]);
 

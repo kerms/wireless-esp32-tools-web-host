@@ -175,7 +175,7 @@
     </div>
   </div>
 
-  <div class="shrink-0 min-h-6 flex gap-2 justify-between">
+  <div class="shrink-0 min-h-6 flex gap-2 justify-between overflow-auto">
     <div class="flex gap-2">
       <el-link @click="clearSendInput">
         <el-tag class="font-mono" size="small">
