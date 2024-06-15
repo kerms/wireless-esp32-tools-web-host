@@ -61,7 +61,6 @@ import {breakpointsTailwind, useBreakpoints} from '@vueuse/core'
 import {useDataViewerStore} from '@/stores/dataViewerStore';
 import * as api from '@/api';
 import {ControlEvent} from '@/api';
-import * as uart from '@/api/apiUart';
 import {
   type IUartMsgBaud,
   type IUartMsgConfig,
@@ -214,7 +213,7 @@ function mouseResize(e: MouseEvent) {
 
 function touchResize(e: TouchEvent) {
   let t = e.touches[0];
-  let f = 0;
+  let f: number;
 
   if (layoutMode.value === 'row') {
     f = t.clientX;

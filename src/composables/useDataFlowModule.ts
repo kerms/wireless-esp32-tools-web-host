@@ -1,5 +1,5 @@
 import {registerModule} from "@/router/msgRouter";
-import {type ApiJsonMsg, ControlEvent, type ControlMsg, ControlMsgType, WtModuleID} from "@/api";
+import {type ApiJsonMsg, type ControlMsg, ControlMsgType, WtModuleID} from "@/api";
 import {isDevMode} from "@/composables/buildMode";
 import {useDataFlowStore} from "@/stores/useDataFlowStore";
 import {type IInstanceList, WtDataFlowCmd} from "@/api/apiDataFlow";

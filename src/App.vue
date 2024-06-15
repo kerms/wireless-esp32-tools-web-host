@@ -40,7 +40,7 @@ let websocketService: IWebsocketService;
 onMounted(() => {
 
   logHelloMessage();
-  let host = "";
+  let host: string;
   if (isDevMode()) {
     host = import.meta.env.VITE_DEVICE_HOST_NAME || "dap.local";
   } else {

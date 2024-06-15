@@ -293,7 +293,6 @@ export const useDataViewerStore = defineStore('text-viewer', () => {
             const appendedLength = frameBreakAfterSequence.value ? frameBreakSequenceNormalized.value.length : 0;
             /* else after the first match, skip the matchArr at the beginning of array in subsequent match */
             const skipLength = frameBreakAfterSequence.value ? 0 : frameBreakSequenceNormalized.value.length;
-            let remain = false;
             let startIndex = 0;
 
             inputArray.forEach(array => {
@@ -314,7 +313,7 @@ export const useDataViewerStore = defineStore('text-viewer', () => {
                     result.push(array.subarray(startIndex, array.length));
                 }
             });
-            remain = startIndex < inputArray[inputArray.length - 1].length;
+            const remain = startIndex < inputArray[inputArray.length - 1].length;
             return {result, remain};
         }
     }, {
@@ -343,7 +342,7 @@ export const useDataViewerStore = defineStore('text-viewer', () => {
         const encoder = new TextEncoder();
         input = unescapeString(input);
         const encodedStr = encoder.encode(input);
-        addSegment(encodedStr, isRX);
+        addSegment(encodedStr, isRX, doSend);
     }
 
     function addSegment(input: Uint8Array, isRX: boolean, doSend: boolean = false) {
@@ -456,7 +455,6 @@ export const useDataViewerStore = defineStore('text-viewer', () => {
         return encoder.encode(str);
     })
 
-    const dataArchive: IDataArchive[] = [];
     const dataBuf: IDataBuf[] = [];
     const dataBufLength = ref(0);
 
@@ -477,7 +475,7 @@ export const useDataViewerStore = defineStore('text-viewer', () => {
     const batchUpdateTime = ref(80); /* ms */
     let batchStartIndex: number = 0;
 
-    watch(batchUpdateTime, value => {
+    watch(batchUpdateTime, () => {
         if (batchDataUpdateIntervalID >= 0) {
             clearInterval(batchDataUpdateIntervalID);
             batchDataUpdateIntervalID = -1;
@@ -538,7 +536,7 @@ export const useDataViewerStore = defineStore('text-viewer', () => {
         softRefreshFilterBuf();
     }
 
-    function softRefreshFilterBuf(delayTime: number = 0) {
+    function softRefreshFilterBuf() {
         /* handle filtered buf array */
         const totalBufLength = dataBuf.length - batchStartIndex + dataFiltered.length;
 
@@ -605,7 +603,7 @@ export const useDataViewerStore = defineStore('text-viewer', () => {
             TxByteCountLocal = item.length;
         }
 
-        let str = ""
+        let str: string;
         str = decodeUtf8(item);
         str = escapeHTML(str);
         str = strToHTML(str);

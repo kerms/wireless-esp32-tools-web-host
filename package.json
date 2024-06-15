@@ -8,6 +8,7 @@
     "devh": ". ./set_env.sh && vite --host",
     "build": "run-p type-check \"build-only {@}\" --",
     "preview": ". ./set_env.sh && vite preview",
+    "previewh": ". ./set_env.sh && vite preview --host",
     "build-only": ". ./set_env.sh && vite build",
     "build:dev": ". ./set_env.sh && vite build --mode development",
     "type-check": "vue-tsc --build --force",

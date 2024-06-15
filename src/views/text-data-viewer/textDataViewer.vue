@@ -438,7 +438,7 @@ watch(() => store.showVirtualScroll, () => {
   }
 });
 
-const handleScroll = (ev: Event) => {
+const handleScroll = () => {
   if (store.forceToBottom) {
     if (vuetifyVirtualScrollBarRef.value.scrollTop - lastScrollHeight < 0) {
       store.forceToBottom = false;
