@@ -138,6 +138,7 @@ function u8toHexdump(buffer: Uint8Array) {
 function strToHTML(str: string) {
     return str.replace(/\n/g, '<br>') // Replace newline with <br> tag
         .replace(/\t/g, '&emsp;') // Replace tab with spaces (or you could use '&nbsp;' for single spaces)
+        .replace(/\r/, '')
         .replace(/ /g, ' ');
 }
 
@@ -425,8 +426,8 @@ export const useDataViewerStore = defineStore('text-viewer', () => {
     const forceToBottom = ref(true);
     const filterChanged = ref(false);
 
-    const textSuffixValue = ref("")
     const textPrefixValue = ref("")
+    const textSuffixValue = ref("\\r\\n")
 
     const uartBaud = ref(115200);
     const uartBaudReal = ref(115200);
@@ -454,28 +455,6 @@ export const useDataViewerStore = defineStore('text-viewer', () => {
         const encoder = new TextEncoder();
         return encoder.encode(str);
     })
-
-    // debouncedWatch(() => frameBreakSequence.value, (newValue) => {
-    //     const unescapedStr = unescapeString(newValue);
-    //     const encoder = new TextEncoder();
-    //     frameBreakSequenceNormalized.value = encoder.encode(unescapedStr);
-    // }, {debounce: 300, immediate: true});
-    //
-    // debouncedWatch(() => frameBreakDelay.value, (newValue) => {
-    //     if (newValue < 0) {
-    //         frameBreakReady = false;
-    //         clearTimeout(frameBreakTimeoutID);
-    //     } else if (newValue === 0) {
-    //         frameBreakReady = true;
-    //         clearTimeout(frameBreakTimeoutID);
-    //     } else {
-    //         refreshTimeout();
-    //     }
-    // }, {debounce: 300, immediate: true});
-
-    // let frameBreakReady = false;
-    // let frameBreakTimeoutID = setTimeout(() => {
-    // }, 0);
 
     const dataArchive: IDataArchive[] = [];
     const dataBuf: IDataBuf[] = [];
