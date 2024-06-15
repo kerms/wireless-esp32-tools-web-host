@@ -13,6 +13,7 @@ import {globalNotify} from "@/composables/notification";
 import {isDevMode} from "@/composables/buildMode";
 import {ElMessageBox} from "element-plus";
 import {useSystemModule} from "@/composables/useSystemModule";
+import {useDataFlowModule} from "@/composables/useDataFlowModule";
 
 const wsState = useWsStore();
 
@@ -49,7 +50,9 @@ onMounted(() => {
   websocketService = getWebsocketService();
   websocketService.init(host, onServerMsg, onClientCtrl);
   changeFavicon();
+
   useSystemModule();
+  useDataFlowModule();
 });
 
 onUnmounted(() => {

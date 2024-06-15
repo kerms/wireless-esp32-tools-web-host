@@ -65,8 +65,10 @@ import * as uart from '@/api/apiUart';
 import {
   type IUartMsgBaud,
   type IUartMsgConfig,
+  type IUartMsgNum,
   uart_get_baud,
   uart_get_config,
+  uart_get_default_num,
   uart_set_baud,
   uart_set_config,
   WtUartCmd
@@ -363,6 +365,11 @@ const onUartJsonMsg = (msg: api.ApiJsonMsg) => {
       store.uartConfig.parity = uartMsg.parity;
       break;
     }
+    case WtUartCmd.GET_DEFAULT_NUM:
+      uartStore.uartNum = (msg as IUartMsgNum).num;
+      uart_get_baud(uartStore.uartNum);
+      uart_get_config(uartStore.uartNum);
+      break;
     default:
       if (isDevMode()) {
         console.log("uart not treated", msg);
@@ -377,32 +384,6 @@ const onUartBinaryMsg = (msg: ApiBinaryMsg) => {
   }
 
   store.addSegment(new Uint8Array(msg.payload), true);
-};
-
-const onDataFlowJsonMsg = (msg: api.ApiJsonMsg) => {
-  if (isDevMode()) {
-    console.log("Dflow Json", msg);
-  }
-
-  if (msg.cmd === df.WtDataFlowCmd.GET_INS_LIST) {
-    const instances = msg as df.IInstanceList;
-    if (instances.instances.length) {
-      if (instances.instances[0].mod_type === df.WtDataFlowType.UART) {
-        uartStore.uartNum = (instances.instances[0].port_info as df.IPeriphInfo).periph_num;
-        uart_get_baud(uartStore.uartNum);
-        uart_get_config(uartStore.uartNum);
-        if (isDevMode()) {
-          console.log("set UART num to ", uartStore.uartNum);
-        }
-      }
-    }
-  }
-};
-
-const onDataFlowBinaryMsg = (msg: ApiBinaryMsg) => {
-  if (isDevMode()) {
-    console.log("Dflow Bin", msg);
-  }
 };
 
 const onClientCtrl = (msg: api.ControlMsg) => {
@@ -420,7 +401,7 @@ const onClientCtrl = (msg: api.ControlMsg) => {
 
 function updateUartData() {
   /* TODO: hard code for the moment, 0 is UART instance id (can be changed in the future) */
-  df.wt_data_flow_get_instance_list();
+  uart_get_default_num();
   df.wt_data_flow_attach_cur_to_sender(0);
 }
 
@@ -437,12 +418,6 @@ onMounted(() => {
     ctrlCallback: onClientCtrl,
     serverJsonMsgCallback: onUartJsonMsg,
     serverBinMsgCallback: onUartBinaryMsg,
-  });
-
-  registerModule(api.WtModuleID.DATA_FLOW, {
-    ctrlCallback: () => {},
-    serverJsonMsgCallback: onDataFlowJsonMsg,
-    serverBinMsgCallback: onDataFlowBinaryMsg,
   });
 
   firstWinResizeRef.value.style.borderWidth = win1.borderSize + "px";

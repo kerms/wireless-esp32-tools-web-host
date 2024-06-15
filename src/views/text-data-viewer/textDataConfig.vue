@@ -310,6 +310,24 @@
           </el-input>
         </div>
       </el-tab-pane>
+
+
+      <el-tab-pane label="透传" name="fourth" class="min-h-80">
+        <div class="flex flex-col gap-2">
+          <div class="border rounded bg-white p-2">
+            <span class="border-r px-2">TCP服务器端口</span>
+            <span class="px-2 cursor-not-allowed">1346</span>
+          </div>
+          <div>
+            <p><el-button @click="refreshTCPClientList" size="small" type="primary" :plain="true">刷新</el-button> 已连接的客户端：</p>
+
+            <el-table :data="dfStore.instanceList.filter((item) => (item.port_info as ISocketInfo).local_port === 1346)" empty-text="无客户端连接">
+              <el-table-column label="IP" prop="port_info.foreign_ip" />
+              <el-table-column label="端口" prop="port_info.foreign_port"/>
+            </el-table>
+          </div>
+        </div>
+      </el-tab-pane>
     </el-tabs>
   </div>
 </template>
@@ -323,9 +341,13 @@ import {globalNotify} from "@/composables/notification";
 import {ControlEvent} from "@/api";
 import type {MoveEvent} from "sortablejs";
 import InlineSvg from "@/components/InlineSvg.vue";
+import {useDataFlowStore} from "@/stores/useDataFlowStore";
+import {wt_data_flow_get_instance_list, type ISocketInfo} from "@/api/apiDataFlow";
 
 const store = useDataViewerStore()
 const wsStore = useWsStore()
+const dfStore = useDataFlowStore()
+
 const collapseActiveName = ref(["1", "2", "3"])
 
 const uartCustomBaud = ref(114514)
@@ -385,6 +407,11 @@ function checkMove(event: MoveEvent) {
   // Find index of related element
   const toIndex: number = Array.from(event.to.children).indexOf(event.related);
   return !!store.frameBreakRules[toIndex].draggable;
+}
+
+function refreshTCPClientList() {
+  dfStore.instanceList = [];
+  wt_data_flow_get_instance_list();
 }
 
 </script>

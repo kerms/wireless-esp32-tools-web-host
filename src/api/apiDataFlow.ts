@@ -55,13 +55,26 @@ export interface ISocketInfo {
     local_port: number;
 }
 
+export interface InstanceInfo {
+    ins_idx: number,
+    mod_idx: number,
+    mod_type: number,
+    port_info: ISocketInfo | IPeriphInfo;
+}
+
 export interface IInstanceList extends ApiJsonMsg {
-    instances: {
-        ins_idx: number,
-        mod_idx: number,
-        mod_type: number,
-        port_info: ISocketInfo | IPeriphInfo;
-    }[],
+    instances: InstanceInfo[],
+}
+
+export interface AttachInfo {
+    attach_idx: number,
+    s_ins_idx: number,
+    r_ins_idx: number,
+    data_type: 3 | 4,
+}
+
+export interface IAttachList extends ApiJsonMsg {
+    attaches: AttachInfo[],
 }
 
 export function wt_data_flow_get_instance_list() {
