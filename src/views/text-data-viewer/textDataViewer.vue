@@ -170,12 +170,12 @@
       </el-tooltip>
       <p>►</p>
     </div>
-    <div ref="RxHexDumpRef" class="p-0.5 border-2 rounded w-full overflow-scroll font-mono text-nowrap">
+    <div ref="RxHexDumpRef" class="p-0.5 border-2 rounded w-full overflow-y-scroll font-mono text-nowrap">
       <p v-html="store.RxRemainHexdump"></p>
     </div>
   </div>
 
-  <div class="shrink-0 min-h-6 flex gap-2 justify-between overflow-y-scroll">
+  <div class="shrink-0 min-h-6 flex gap-2 justify-between">
     <div class="flex gap-2">
       <el-link @click="clearSendInput">
         <el-tag class="font-mono" size="small">
