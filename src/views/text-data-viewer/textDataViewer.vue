@@ -291,6 +291,10 @@ function attachScroll() {
     const config = {childList: true, subtree: true, attributes: true};
     mutationObserver.observe(vuetifyVirtualScrollBarRef.value, config)
   }
+
+  if (store.forceToBottom) {
+    scrollToBottom();
+  }
 }
 
 onMounted(() => {
@@ -340,13 +344,6 @@ function scrollToBottom() {
   nextTick(() => {
     const scrollerElement = vuetifyVirtualScrollBarRef.value; // Adjust according to your setup
     scrollerElement.scrollTop = scrollerElement.scrollHeight;
-  });
-}
-
-function scrollToTop() {
-  nextTick(() => {
-    vuetifyVirtualScrollBarRef.value.scrollTop = vuetifyVirtualScrollBarRef.value.scrollHeight;
-    // vuetifyVirtualScrollBarRef.value.scrollTo(0, 0);
   });
 }
 
@@ -423,11 +420,10 @@ watch(loopSendFreq, (value) => {
 
 /* patch scroll container does not update clear filter */
 watch(() => store.filterChanged, (value) => {
-  if (value) {
-    scrollToTop()
+  if (value && store.forceToBottom) {
     scrollToBottom();
-    store.filterChanged = false;
   }
+  store.filterChanged = false;
 })
 
 watch(() => store.RxRemainHexdump, value => {
@@ -446,6 +442,8 @@ const handleScroll = (ev: Event) => {
   if (store.forceToBottom) {
     if (vuetifyVirtualScrollBarRef.value.scrollTop - lastScrollHeight < 0) {
       store.forceToBottom = false;
+    } else {
+      scrollToBottom();
     }
   } else if ((vuetifyVirtualScrollBarRef.value.scrollHeight -
       vuetifyVirtualScrollBarRef.value.scrollTop) <= vuetifyVirtualScrollBarRef.value.clientHeight) {
