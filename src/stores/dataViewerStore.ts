@@ -470,21 +470,7 @@ export const useDataViewerStore = defineStore('text-viewer', () => {
     // }, 0);
 
     debouncedWatch(computedFilterValue, () => {
-        dataFiltered.length = 0; // Clear the array efficiently
-        if (computedFilterValue.value.length === 0) {
-            dataFiltered.push(...dataBuf);
-            filterChanged.value = true;
-            return;
-        }
-
-        const index = dataFiltered.length;
-        for (const item of dataBuf) {
-            const index = isArrayContained(computedFilterValue.value, item.data);
-            if (index >= 0) {
-                dataFiltered.push(item);
-            }
-            filterChanged.value = true;
-        }
+        refreshFilteredBuff()
     }, {debounce: 300});
 
     let batchDataUpdateIntervalID: number = -1;
@@ -654,73 +640,6 @@ export const useDataViewerStore = defineStore('text-viewer', () => {
         });
     }
 
-
-    // function doFrameBreak() {
-    //     frameBreakReady = true;
-    // }
-
-
-    // function refreshTimeout() {
-    //     /* always break  */
-    //     // if (frameBreakDelay.value === 0) {
-    //     //     frameBreakReady = true;
-    //     // }
-    //
-    //
-    //     if (!frameBreakReady && frameBreakDelay.value > 0) {
-    //         clearTimeout(frameBreakTimeoutID);
-    //         frameBreakTimeoutID = setTimeout(doFrameBreak, frameBreakDelay.value);
-    //     }
-    // }
-
-    // function addChunk(item: Uint8Array, isRX: boolean) {
-    //     let newArray: Uint8Array;
-    //
-    //     if (frameBreakSequence.value === "") {
-    //         if (frameBreakReady || dataBuf.length === 0 || dataBuf[dataBuf.length - 1].isRX != isRX) {
-    //             addItem(item, isRX);
-    //             frameBreakReady = false;
-    //         } else {
-    //             /* TODO: append item to last */
-    //             newArray = new Uint8Array(dataBuf[dataBuf.length - 1].data.length + item.length + 1);
-    //             newArray.set(dataBuf[dataBuf.length - 1].data);
-    //             newArray.set(item, dataBuf[dataBuf.length - 1].data.length);
-    //             popItem();
-    //             addItem(newArray, isRX);
-    //         }
-    //         refreshTimeout();
-    //         return;
-    //     }
-    //
-    //
-    //     if (frameBreakReady) {
-    //         newArray = item;
-    //     } else {
-    //         if (dataBuf.length) {
-    //             newArray = new Uint8Array(dataBuf[dataBuf.length - 1].data.length + item.length + 1);
-    //             newArray.set(dataBuf[dataBuf.length - 1].data);
-    //             newArray.set(item, dataBuf[dataBuf.length - 1].data.length);
-    //             popItem();
-    //         } else {
-    //             newArray = item;
-    //         }
-    //     }
-    //
-    //     console.log(newArray)
-    //     console.log(frameBreakSequenceNormalized.value)
-    //
-    //     /* break frame at sequence match */
-    //     let matchIndex = isArrayContained(frameBreakSequenceNormalized.value, newArray);
-    //     while (matchIndex < 0) {
-    //         console.log(matchIndex)
-    //         /* update last buf item */
-    //         addItem(newArray.slice(0, matchIndex + frameBreakSequenceNormalized.value.length), isRX);
-    //         newArray = newArray.slice(matchIndex + frameBreakSequenceNormalized.value.length);
-    //         matchIndex = isArrayContained(frameBreakSequenceNormalized.value, newArray);
-    //     }
-    //     addItem(newArray.slice(0, matchIndex + frameBreakSequenceNormalized.value.length), isRX);
-    // }
-
     function clearByteCount(isRX: boolean) {
         if (isRX) {
             RxTotalByteCountLocal = 0;
@@ -745,14 +664,21 @@ export const useDataViewerStore = defineStore('text-viewer', () => {
     }
 
     function clearFilteredBuff() {
+        /* prevent virtual scroll not displaying new data */
         showVirtualScroll.value = !showVirtualScroll.value;
+        /* the actual clear buff clear */
         dataFiltered.length = 0;
     }
 
     function refreshFilteredBuff() {
-        const oldValue = filterValue.value;
-        filterValue.value += "66";
-        filterValue.value = oldValue;
+        clearFilteredBuff()
+        for (const item of dataBuf) {
+            const index = isArrayContained(computedFilterValue.value, item.data);
+            if (index >= 0 || filterValue.value.length === 0) {
+                dataFiltered.push(item);
+            }
+        }
+        filterChanged.value = true;
     }
 
     function setUartBaud(baud: number) {
