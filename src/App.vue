@@ -11,7 +11,6 @@ import {ControlEvent, ControlMsgType} from "@/api";
 import {routeCtrlMsg, routeModuleServerMsg} from "@/router/msgRouter";
 import {globalNotify} from "@/composables/notification";
 import {isDevMode} from "@/composables/buildMode";
-import {ElMessageBox} from "element-plus";
 import {useSystemModule} from "@/composables/useSystemModule";
 import {useDataFlowModule} from "@/composables/useDataFlowModule";
 
@@ -61,10 +60,16 @@ onUnmounted(() => {
 </script>
 
 <template>
-  <div class="flex flex-col h-screen">
+  <div class="flex flex-col wt-h-100">
     <header>
       <nav-bar/>
     </header>
     <RouterView/>
   </div>
 </template>
+
+<style>
+.wt-h-100 {
+  height: 100vh;
+}
+</style>
