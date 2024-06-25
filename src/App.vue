@@ -10,10 +10,11 @@ import type {ControlMsg, ServerMsg} from "@/api";
 import {ControlEvent, ControlMsgType} from "@/api";
 import {routeCtrlMsg, routeModuleServerMsg} from "@/router/msgRouter";
 import {globalNotify} from "@/composables/notification";
-import {isDevMode} from "@/composables/buildMode";
+import {getTrialDate, isDevMode, isOTAEnabled, isTrialMode} from "@/composables/buildMode";
 import {useSystemModule} from "@/composables/useSystemModule";
 import {useDataFlowModule} from "@/composables/useDataFlowModule";
 import {useUpdateModule} from "@/composables/useUpdateModule";
+import {ElMessageBox} from "element-plus";
 
 const wsState = useWsStore();
 
@@ -53,7 +54,16 @@ onMounted(() => {
 
   useSystemModule();
   useDataFlowModule();
-  useUpdateModule();
+
+  if (isOTAEnabled()) {
+    useUpdateModule();
+  }
+
+  if (isTrialMode()) {
+    ElMessageBox.alert('感谢您试用串口透传固件，如果觉得好用，可购买标准版支持我，谢谢！', getTrialDate(), {
+      confirmButtonText: '好的',
+    });
+  }
 });
 
 onUnmounted(() => {

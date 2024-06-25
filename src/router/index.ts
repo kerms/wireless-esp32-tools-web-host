@@ -7,6 +7,7 @@ import Uart from '@/views/Uart.vue'
 import Page404 from '@/views/404.vue'
 import Update from '@/views/Update.vue'
 import {translate} from "@/locales";
+import {isOTAEnabled} from "@/composables/buildMode";
 
 
 const router = createRouter({
@@ -43,7 +44,7 @@ const router = createRouter({
             path: '/update:ext(.*)',
             meta: {title: translate('page.update')},
             name: 'update',
-            component: Update,
+            component: isOTAEnabled() ? Update : Page404,
         }, {
             path: '/:catchAll(.*)', // This will match all paths that aren't matched by above routes
             name: 'NotFound',

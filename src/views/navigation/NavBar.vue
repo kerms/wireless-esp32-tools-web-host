@@ -115,6 +115,7 @@ import {ControlEvent} from "@/api";
 import {useRoute} from "vue-router";
 import { useFullscreen } from '@vueuse/core'
 import {useUpdateStore} from "@/stores/useUpdateStore";
+import {isOTAEnabled} from "@/composables/buildMode";
 
 const wsStore = useWsStore();
 const updateStore = useUpdateStore();
@@ -178,12 +179,16 @@ const sideBarItems: Item[] = ([
   }, {
     name: translate("page.feedback"),
     href: "/feedback",
-  }, {
+  },
+]);
+
+if (isOTAEnabled()) {
+  sideBarItems.push({
     name: translate("page.update"),
     href: "/update",
     badge: computed(() => updateStore.canUpdate),
-  },
-]);
+  })
+}
 
 </script>
 
