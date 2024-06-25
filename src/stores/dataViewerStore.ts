@@ -45,32 +45,57 @@ function escapeHTML(text: string) {
     return element.innerHTML;
 }
 
-function unescapeString(str: string) {
-    return str.replace(/\\(u[0-9a-fA-F]{4}|x[0-9a-fA-F]{2}|[0-7]{1,3}|.)/g, (_, escapeChar) => {
-        switch (escapeChar[0]) {
-            case 'n':
-                return '\n';
-            case 'r':
-                return '\r';
-            case 't':
-                return '\t';
-            case 'b':
-                return '\b';
-            case 'v':
-                return '\v';
-            case '0':
-                return '\0';
-            case 'x':
-                return String.fromCharCode(parseInt(escapeChar.slice(1), 16));
-            case 'u':
-                return String.fromCharCode(parseInt(escapeChar.slice(1), 16));
-            default:
-                if (/^[0-7]{1,3}$/.test(escapeChar)) {
-                    return String.fromCharCode(parseInt(escapeChar, 8));
-                }
-                return escapeChar;
+function unescapeString(str: string): Uint8Array {
+    const resultArray = [];
+    let i = 0;
+
+    while (i < str.length) {
+        if (str[i] === '\\' && i + 1 < str.length) {
+            i++;
+            switch (str[i]) {
+                case 'n':
+                    resultArray.push('\n'.charCodeAt(0));
+                    break;
+                case 'r':
+                    resultArray.push('\r'.charCodeAt(0));
+                    break;
+                case 't':
+                    resultArray.push('\t'.charCodeAt(0));
+                    break;
+                case 'b':
+                    resultArray.push('\b'.charCodeAt(0));
+                    break;
+                case 'v':
+                    resultArray.push('\v'.charCodeAt(0));
+                    break;
+                case '0':
+                    resultArray.push('\0'.charCodeAt(0));
+                    break;
+                case 'x':
+                    if (i + 2 < str.length) {
+                        const hex = str.slice(i + 1, i + 3);
+                        resultArray.push(parseInt(hex, 16));
+                        i += 2;
+                    }
+                    break;
+                case 'u':
+                    if (i + 4 < str.length) {
+                        const hex = str.slice(i + 1, i + 5);
+                        resultArray.push(parseInt(hex, 16));
+                        i += 4;
+                    }
+                    break;
+                default:
+                    resultArray.push(str[i].charCodeAt(0));
+                    break;
+            }
+        } else {
+            resultArray.push(str[i].charCodeAt(0));
         }
-    });
+        i++;
+    }
+
+    return new Uint8Array(resultArray);
 }
 
 const zeroPad = (num: number, places: number) => String(num).padStart(places, '0');
@@ -227,9 +252,7 @@ export const useDataViewerStore = defineStore('text-viewer', () => {
     const frameBreakSequence = ref("\\n");
     const frameBreakAfterSequence = ref(true);
     const frameBreakSequenceNormalized = computed(() => {
-        const unescapedStr = unescapeString(frameBreakSequence.value);
-        const encoder = new TextEncoder();
-        return encoder.encode(unescapedStr);
+        return unescapeString(frameBreakSequence.value);
     });
     const frameBreakDelay = ref(0);
     let frameBreakDelayTimeoutID: number = -1;
@@ -339,10 +362,8 @@ export const useDataViewerStore = defineStore('text-viewer', () => {
     },])
 
     function addStringMessage(input: string, isRX: boolean, doSend: boolean = false) {
-        const encoder = new TextEncoder();
-        input = unescapeString(input);
-        const encodedStr = encoder.encode(input);
-        addSegment(encodedStr, isRX, doSend);
+        const unescaped = unescapeString(input);
+        addSegment(unescaped, isRX, doSend);
     }
 
     function addSegment(input: Uint8Array, isRX: boolean, doSend: boolean = false) {
@@ -438,21 +459,15 @@ export const useDataViewerStore = defineStore('text-viewer', () => {
 
     const filterValue = ref("");
     const computedFilterValue = computed(() => {
-        const str = unescapeString(filterValue.value);
-        const encoder = new TextEncoder();
-        return encoder.encode(str);
+        return unescapeString(filterValue.value);
     })
 
     const computedSuffixValue = computed(() => {
-        const str = unescapeString(textSuffixValue.value);
-        const encoder = new TextEncoder();
-        return encoder.encode(str);
+        return unescapeString(textSuffixValue.value);
     })
 
     const computedPrefixValue = computed(() => {
-        const str = unescapeString(textPrefixValue.value);
-        const encoder = new TextEncoder();
-        return encoder.encode(str);
+        return unescapeString(textPrefixValue.value);
     })
 
     const dataBuf: IDataBuf[] = [];
@@ -501,10 +516,8 @@ export const useDataViewerStore = defineStore('text-viewer', () => {
     }, 200);
 
     function addString(item: string, isRX: boolean = false, doSend: boolean = false, type: number = 0) {
-        const encoder = new TextEncoder();
-        item = unescapeString(item);
-        const encodedStr = encoder.encode(item);
-        return addItem(encodedStr, isRX, doSend, type);
+        const unescaped = unescapeString(item);
+        return addItem(unescaped, isRX, doSend, type);
     }
 
     function addHexString(item: string, isRX: boolean = false, doSend: boolean = false, type: number = 0) {
