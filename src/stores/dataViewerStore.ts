@@ -448,6 +448,9 @@ export const useDataViewerStore = defineStore('text-viewer', () => {
 
     const textPrefixValue = ref("")
     const textSuffixValue = ref("\\r\\n")
+    const hasAddedText = computed(() => {
+        return textPrefixValue.value.length > 0 || textSuffixValue.value.length > 0;
+    });
 
     const uartBaud = ref(115200);
     const uartBaudReal = ref(115200);
@@ -715,6 +718,7 @@ export const useDataViewerStore = defineStore('text-viewer', () => {
         softRefreshFilterBuf,
         textSuffixValue,
         textPrefixValue,
+        hasAddedText,
         clearByteCount,
         dataBufLength,
         configPanelTab,

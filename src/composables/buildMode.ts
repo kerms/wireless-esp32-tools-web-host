@@ -3,11 +3,11 @@ export function isDevMode() {
 }
 
 export function isOTAEnabled() {
-    return import.meta.env.VITE_ENABLE_OTA === 'true';
+    return import.meta.env.VITE_ENABLE_OTA === 'true' || false;
 }
 
 export function isTrialMode() {
-    return import.meta.env.VITE_TRIAL_MODE === "true"
+    return import.meta.env.VITE_TRIAL_MODE === "true" || false;
 }
 
 export function getTrialDate() {

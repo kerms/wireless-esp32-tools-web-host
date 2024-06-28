@@ -95,8 +95,8 @@ const macroData: Ref<macroItem[]> = ref([
 
 
 function onSendClick(val: string) {
-  if (!val) {
-    globalNotify("发送框无数据发送")
+  if (!val && !store.hasAddedText) {
+    globalNotify("无帧头帧尾、发送框无数据发送")
     return;
   }
 

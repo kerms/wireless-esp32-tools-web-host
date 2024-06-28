@@ -469,8 +469,8 @@ function handleTextboxKeydown(ev: KeyboardEvent) {
 }
 
 function onSendClick() {
-  if (!uartInputTextBox.value) {
-    globalNotify("发送框无数据发送")
+  if (!uartInputTextBox.value && !store.hasAddedText) {
+    globalNotify("无帧头帧尾、发送框无数据发送")
     return;
   }
 
