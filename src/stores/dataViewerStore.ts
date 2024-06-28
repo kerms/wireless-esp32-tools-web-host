@@ -442,6 +442,16 @@ export const useDataViewerStore = defineStore('text-viewer', () => {
     let RxByteCountLocal = 0;
     let RxTotalByteCountLocal = 0;
 
+    function clearRxCounter() {
+        RxByteCountLocal = 0;
+        RxTotalByteCountLocal = 0;
+    }
+
+    function clearTxCounter() {
+        TxByteCountLocal = 0;
+        TxTotalByteCountLocal = 0;
+    }
+
     const enableFilter = ref(true);
     const forceToBottom = ref(true);
     const filterChanged = ref(false);
@@ -745,6 +755,8 @@ export const useDataViewerStore = defineStore('text-viewer', () => {
         RxTotalByteCount,
         TxByteCount,
         TxTotalByteCount,
+        clearRxCounter,
+        clearTxCounter,
         forceToBottom,
         filterChanged,
 

@@ -207,12 +207,12 @@
       </el-link>
     </div>
     <div class="flex gap-2">
-      <el-link>
+      <el-link @click="store.clearTxCounter()">
         <el-tag class="font-mono font-bold" size="small">
           {{ `TX(B):${store.TxByteCount}/ ${store.TxTotalByteCount}` }}
         </el-tag>
       </el-link>
-      <el-link type="success">
+      <el-link type="success" @click="store.clearRxCounter()">
         <el-tag class="font-mono font-bold" size="small" type="success">
           {{ `RX(B):${store.RxByteCount}/ ${store.RxTotalByteCount}` }}
         </el-tag>
