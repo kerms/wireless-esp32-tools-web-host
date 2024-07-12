@@ -350,7 +350,7 @@ const dfStore = useDataFlowStore()
 
 const collapseActiveName = ref(["1", "2", "3"])
 
-const uartCustomBaud = ref(114514)
+const uartCustomBaud = ref(1500000)
 
 const uartDataBitsOptions = [
   {
