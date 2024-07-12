@@ -9,6 +9,7 @@ export enum WifiCmd {
     WIFI_API_JSON_AP_GET_INFO     = 5,
     WIFI_API_JSON_GET_MODE        = 6,
     WIFI_API_JSON_SET_MODE        = 7,
+    WIFI_API_JSON_AP_SET_CRED     = 8,
 }
 
 export enum WifiMode {
@@ -34,13 +35,14 @@ export enum WifiStatus {
     WIFI_MODE_APSTA, /**< WiFi station + soft-AP mode */
 }
 
-interface WifiMsgOut extends ApiJsonMsg {
+export interface WiFiCredential extends ApiJsonMsg {
     ssid?: string;
     password?: string;
+    err?: string;
 }
 
 export function wifi_get_scan_list() {
-    const msg : WifiMsgOut = {
+    const msg : WiFiCredential = {
         module: WtModuleID.WIFI,
         cmd: WifiCmd.WIFI_API_JSON_GET_SCAN,
     }
@@ -48,7 +50,7 @@ export function wifi_get_scan_list() {
 }
 
 export function wifi_sta_get_ap_info() {
-    const msg : WifiMsgOut = {
+    const msg : WiFiCredential = {
         module: WtModuleID.WIFI,
         cmd: WifiCmd.WIFI_API_JSON_STA_GET_AP_INFO,
     }
@@ -56,7 +58,7 @@ export function wifi_sta_get_ap_info() {
 }
 
 export function wifi_ap_get_info() {
-    const msg : WifiMsgOut = {
+    const msg : WiFiCredential = {
         module: WtModuleID.WIFI,
         cmd: WifiCmd.WIFI_API_JSON_AP_GET_INFO,
     }
@@ -64,7 +66,7 @@ export function wifi_ap_get_info() {
 }
 
 export function wifi_connect_to(ssid: string, password: string) {
-    const msg: WifiMsgOut = {
+    const msg: WiFiCredential = {
         module: WtModuleID.WIFI,
         cmd: WifiCmd.WIFI_API_JSON_CONNECT,
         ssid: ssid,
@@ -76,6 +78,17 @@ export function wifi_connect_to(ssid: string, password: string) {
 export interface WifiInfo extends ApiJsonMsg {
     rssi: number;
     ssid: string;
+    password: string;
+    gateway: string;
+    ip: string;
+    mac: string;
+    netmask: string;
+    wifiLogo?: string;
+}
+
+export interface WifiScanInfo extends ApiJsonMsg {
+    rssi: number;
+    ssid: string;
     gateway: string;
     ip: string;
     mac: string;
@@ -84,7 +97,7 @@ export interface WifiInfo extends ApiJsonMsg {
 }
 
 export interface WifiList extends ApiJsonMsg {
-    scan_list: Array<WifiInfo>;
+    scan_list: Array<WifiScanInfo>;
 }
 
 export interface IWifiMode extends ApiJsonMsg {
@@ -121,5 +134,15 @@ export function wifi_get_mode() {
         cmd: WifiCmd.WIFI_API_JSON_GET_MODE,
     };
 
+    sendJsonMsg(msg);
+}
+
+export function wifi_ap_set_credential(ssid: string, password: string) {
+    const msg : WiFiCredential = {
+        module: WtModuleID.WIFI,
+        cmd: WifiCmd.WIFI_API_JSON_AP_SET_CRED,
+        ssid: ssid,
+        password: password,
+    }
     sendJsonMsg(msg);
 }

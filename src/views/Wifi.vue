@@ -85,7 +85,7 @@
             :label="item.label"
         />
       </el-select>
-      <el-button type="primary" @click="wifiChangeMode" :loading="wifiMode_loading">更改</el-button>
+      <el-button type="primary" @click="wifiChangeMode" :loading="wifiMode_loading">保存</el-button>
     </div>
 
     <el-divider></el-divider>
@@ -116,7 +116,7 @@
       <el-descriptions-item span="1">
         <template #label>
           <div>
-            SSID
+            Wi-Fi名(SSID)
           </div>
         </template>
         {{ wifiStaApInfo.ssid }}
@@ -127,7 +127,7 @@
 <!--            密码-->
 <!--          </div>-->
 <!--        </template>-->
-<!--        <password-viewer password="asdasdasd"></password-viewer>-->
+<!--        <password-viewer :password="wifiStaApInfo.password"></password-viewer>-->
 <!--      </el-descriptions-item>-->
       <el-descriptions-item span="4">
         <template #label>
@@ -174,26 +174,28 @@
     >
       <template #extra>
         <el-switch v-model="wifiAp_On" :disabled="wsStore.state != ControlEvent.CONNECTED || !wifiSta_On"
-                   active-text="热点已开启" inactive-text="热点已关闭" :loading="wifiMode_loading"
+                   :loading="wifiMode_loading" active-text="已开启" inactive-text="未开启"
                    :before-change="()=>beforeWifiModeChange('AP')"
         />
       </template>
       <el-descriptions-item span="6">
         <template #label>
           <div>
-            SSID
+            Wi-Fi名(SSID)
           </div>
         </template>
-        {{ wifiApInfo.ssid }}
+        <div class="flex">
+          <el-input v-model="wifiApInfo.ssid"></el-input>
+        </div>
       </el-descriptions-item>
-<!--      <el-descriptions-item span="6">-->
-<!--        <template #label>-->
-<!--          <div>-->
-<!--            密码-->
-<!--          </div>-->
-<!--        </template>-->
-<!--        <password-viewer password="asdasdasd"></password-viewer>-->
-<!--      </el-descriptions-item>-->
+      <el-descriptions-item span="6">
+        <template #label>
+          <div>
+            密码
+          </div>
+        </template>
+        <el-input v-model="wifiApInfo.password"></el-input>
+      </el-descriptions-item>
       <el-descriptions-item span="4">
         <template #label>
           <div>
@@ -230,6 +232,9 @@
         {{ wifiApInfo.netmask }}
       </el-descriptions-item>
     </el-descriptions>
+    <div class="flex justify-center mt-4">
+      <el-button type="primary" :loading="wifiMode_loading" @click="wifiApChangeCredential">保存</el-button>
+    </div>
     <el-divider></el-divider>
   </div>
 
@@ -240,6 +245,7 @@ import {computed, onMounted, onUnmounted, reactive, ref} from "vue";
 import {
   type IWifiMode,
   wifi_ap_get_info,
+  wifi_ap_set_credential,
   wifi_connect_to,
   wifi_get_mode,
   wifi_get_scan_list,
@@ -249,7 +255,9 @@ import {
   type WifiInfo,
   type WifiList,
   WifiMode,
-  WifiStatus
+  type WifiScanInfo,
+  type WiFiCredential,
+  WifiStatus,
 } from "@/api/apiWifi";
 import type {FormInstance} from "element-plus";
 
@@ -274,6 +282,8 @@ const wifiMode_loading = ref(false)
 let wifiAp_On = ref(false);
 
 let wifiMode = ref(-1);
+
+const wifiTestString = ref("666");
 
 let wifiModeOptions = [
   {
@@ -303,6 +313,7 @@ const defWifiInfo: WifiInfo = {
   rssi: 0,
   netmask: "未连接",
   ssid: "未连接",
+  password: "",
 }
 
 let wifiStaApInfo = reactive<WifiInfo>({...defWifiInfo});
@@ -311,7 +322,7 @@ let wifiApInfo = reactive<WifiInfo>({...defWifiInfo});
 let scanning = ref(false);
 let scan_cb: any;
 let connectBtnClicked = 0;
-let options: Array<WifiInfo> = [];
+let options: Array<WifiScanInfo> = [];
 const scanText = computed(() => {
   return scanning.value ? "扫描中" : "扫描";
 });
@@ -401,6 +412,17 @@ const onClientMsg = (msg: ApiJsonMsg) => {
       console.log("@@@", wifiAp_On.value);
       break;
     }
+    case WifiCmd.WIFI_API_JSON_AP_SET_CRED: {
+      const wifiCred = msg as WiFiCredential;
+      if (wifiCred.err !== undefined) {
+        globalNotifyRightSide(wifiCred.err, "error");
+      } else {
+        globalNotifyRightSide("已保存配置", "success");
+      }
+      wifiMode_loading.value = false;
+
+      break;
+    }
     default:
       if (isDevMode()) {
         console.log(msg);
@@ -460,6 +482,15 @@ function beforeWifiModeChange(ap_sta: "AP" | "STA" = "AP") {
 function wifiChangeMode() {
   wifiMode_loading.value = true;
   wifi_set_mode(wifiMode.value);
+}
+
+function wifiApChangeCredential() {
+  if (wifiApInfo.ssid === "") {
+    globalNotifyRightSide("请输入AP名称", "error");
+    return;
+  }
+  wifiMode_loading.value = true;
+  wifi_ap_set_credential(wifiApInfo.ssid, wifiApInfo.password);
 }
 
 onMounted(() => {
