@@ -6,6 +6,7 @@
           <title>导航侧栏</title>
           <path d="M0 3h20v2H0V3zm0 6h20v2H0V9zm0 6h20v2H0v-2z"></path>
         </svg>
+        <el-badge v-if="updateStore.canUpdate" is-dot></el-badge>
       </button>
 
       <router-link to="/" class="text-3xl px-4 font-bold leading-none hidden items-center sm:flex" title="走，去码头整点薯条">
