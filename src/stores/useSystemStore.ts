@@ -13,11 +13,16 @@ export const useSystemStore = defineStore('system', () => {
         date: "-",
     })
 
+    const sys_info = ref({
+        sn: "-",
+    });
+
     const rebootInProgress = ref(false);
 
     return {
         curFmInfo,
         hwInfo,
+        sysInfo: sys_info,
         rebootInProgress,
     }
 });

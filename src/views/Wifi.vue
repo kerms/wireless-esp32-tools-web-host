@@ -540,7 +540,6 @@ const onClientMsg = (msg: ApiJsonMsg) => {
     }
     case WifiCmd.WIFI_API_JSON_STA_GET_STATIC_INFO: {
       const staticInfo = msg as IWifiStaStaticInfo & ApiJsonMsg;
-      console.log("@@@", staticInfo);
       Object.assign(wifiStaticInfo, staticInfo);
       break;
     }

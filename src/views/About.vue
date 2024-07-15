@@ -47,6 +47,7 @@ const sysStore = useSystemStore();
           <el-descriptions-item label="官网"><a target="_blank" href="https://yunsi.studio/wireless-debugger">https://yunsi.studio/wireless-debugger</a></el-descriptions-item>
           <el-descriptions-item label="版本">{{ sysStore.curFmInfo.ver }}</el-descriptions-item>
           <el-descriptions-item label="更新日期">{{ sysStore.curFmInfo.date }}</el-descriptions-item>
+          <el-descriptions-item label="序列号">{{ sysStore.sysInfo.sn }}</el-descriptions-item>
         </el-descriptions>
 
         <el-descriptions title="鸣谢" border :column="1" class="mt-5 description-style">

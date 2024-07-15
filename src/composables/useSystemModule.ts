@@ -1,7 +1,7 @@
 import {useSystemStore} from "@/stores/useSystemStore";
 import {registerModule} from "@/router/msgRouter";
 import {type ApiJsonMsg, ControlEvent, type ControlMsg, ControlMsgType, WtModuleID} from "@/api";
-import {type ISysFmInfo, wt_sys_get_fm_info, WtSytemCmd} from "@/api/apiSystem";
+import {type ISysFmInfo, type ISysInfo, wt_sys_get_fm_info, wt_sys_get_sys_info, WtSytemCmd} from "@/api/apiSystem";
 import {isDevMode} from "@/composables/buildMode";
 
 
@@ -15,6 +15,7 @@ export function useSystemModule() {
 
         if (msg.data === ControlEvent.CONNECTED) {
             wt_sys_get_fm_info();
+            wt_sys_get_sys_info();
             sysStore.rebootInProgress = false;
         }
     }
@@ -28,6 +29,11 @@ export function useSystemModule() {
                 const fm_info = msg as ISysFmInfo;
                 sysStore.curFmInfo.date = fm_info.upd_date;
                 sysStore.curFmInfo.ver = fm_info.fm_ver;
+                break;
+            }
+            case WtSytemCmd.WT_SYS_GET_SYS_INFO: {
+                const sysInfo: ISysInfo = msg as ISysInfo & ApiJsonMsg;
+                Object.assign(sysStore.sysInfo, sysInfo);
                 break;
             }
         }
