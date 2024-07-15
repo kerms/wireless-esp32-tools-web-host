@@ -56,7 +56,7 @@
 
     <el-divider></el-divider>
     <div class="flex items-center">
-      <h5 class="text-md font-bold text-gray-800 w-24">Wi-Fi模式</h5>
+      <h5 class="text-md font-bold text-gray-800 w-32">Wi-Fi模式</h5>
       <div class="flex shrink-0">
         <el-tooltip effect="light">
           <template #content>
