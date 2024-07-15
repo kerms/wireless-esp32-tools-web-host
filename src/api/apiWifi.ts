@@ -10,6 +10,8 @@ export enum WifiCmd {
     WIFI_API_JSON_GET_MODE        = 6,
     WIFI_API_JSON_SET_MODE        = 7,
     WIFI_API_JSON_AP_SET_CRED     = 8,
+    WIFI_API_JSON_STA_GET_STATIC_INFO =  9,
+    WIFI_API_JSON_STA_SET_STATIC_CONF = 10,
 }
 
 export enum WifiMode {
@@ -83,6 +85,8 @@ export interface WifiInfo extends ApiJsonMsg {
     ip: string;
     mac: string;
     netmask: string;
+    dns_main: string;
+    dns_backup: string;
     wifiLogo?: string;
 }
 
@@ -146,3 +150,37 @@ export function wifi_ap_set_credential(ssid: string, password: string) {
     }
     sendJsonMsg(msg);
 }
+
+export interface IWifiStaStaticInfo {
+    static_ip_en: number;
+    static_dns_en: number;
+    ip: string;
+    gateway: string;
+    netmask: string;
+    dns_main: string;
+    dns_backup: string;
+}
+export function wifi_sta_get_static_info() {
+    const msg: ApiJsonMsg = {
+        module: WtModuleID.WIFI,
+        cmd: WifiCmd.WIFI_API_JSON_STA_GET_STATIC_INFO,
+    }
+    sendJsonMsg(msg);
+}
+
+export function wifi_sta_set_static_conf(static_info: IWifiStaStaticInfo) {
+    const msg: IWifiStaStaticInfo & ApiJsonMsg = {
+        module: WtModuleID.WIFI,
+        cmd: WifiCmd.WIFI_API_JSON_STA_SET_STATIC_CONF,
+        static_dns_en: static_info.static_dns_en,
+        static_ip_en: static_info.static_ip_en,
+        ip: static_info.ip,
+        gateway: static_info.gateway,
+        netmask: static_info.netmask,
+        dns_main: static_info.dns_main,
+        dns_backup: static_info.dns_backup,
+    }
+    sendJsonMsg(msg);
+}
+
+

@@ -63,7 +63,7 @@
             <p>热点+终端模式并存会影响稳定性。且保持热点开启会增加功耗。</p>
             <p>
               <el-text size="small">智能模式：</el-text>
-              成功连接Wi-Fi，10秒后自动关闭热点；断开连接，5秒后自动打开热点
+              成功连接Wi-Fi，30秒后自动关闭热点；断开连接，5秒后自动打开热点
             </p>
             <p>
               <el-text size="small">热点+终端共存模式：</el-text>
@@ -77,7 +77,7 @@
           <InlineSvg name="help" class="w-3.5 h-3.5 text-gray-500 cursor-help"></InlineSvg>
         </el-tooltip>
       </div>
-      <el-select v-model="wifiMode" placeholder="Select" :disabled="wsStore.state != ControlEvent.CONNECTED">
+      <el-select v-model="wifiMode" :disabled="wsStore.state != ControlEvent.CONNECTED">
         <el-option
             v-for="item in wifiModeOptions"
             :key="item.key"
@@ -92,34 +92,34 @@
 
 
     <el-descriptions
-        title="Wi-Fi终端(STA)信息(路由器/手机热点等)"
+        title="Wi-Fi终端(STA)信息"
         :column="1"
         border
         class="description-style"
     >
       <template #extra>
         <el-switch v-model="wifiSta_On" :disabled="wsStore.state != ControlEvent.CONNECTED || !wifiAp_On"
-                   active-text="已启用" inactive-text="未启用" :loading="wifiMode_loading"
+                   active-text="已开启" inactive-text="未开启" :loading="wifiMode_loading"
                    :before-change="()=>beforeWifiModeChange('STA')"
         />
       </template>
-      <el-descriptions-item label="asd">
+      <el-descriptions-item span="4">
         <template #label>
           <div>
             信号强度
           </div>
         </template>
         <template #default>
-          {{ wifiStaApInfo.rssi }}
+          <p>{{ wifiStaApInfo.rssi }}</p>
         </template>
       </el-descriptions-item>
-      <el-descriptions-item span="1">
+      <el-descriptions-item span="4">
         <template #label>
           <div>
             Wi-Fi名(SSID)
           </div>
         </template>
-        {{ wifiStaApInfo.ssid }}
+        <p>{{ wifiStaApInfo.ssid }}</p>
       </el-descriptions-item>
 <!--      <el-descriptions-item span="6" >-->
 <!--        <template #label>-->
@@ -132,18 +132,16 @@
       <el-descriptions-item span="4">
         <template #label>
           <div>
-            IP(内网地址)
-          </div>
-        </template>
-        {{ wifiStaApInfo.ip }}
-      </el-descriptions-item>
-      <el-descriptions-item span="4">
-        <template #label>
-          <div>
             MAC
           </div>
         </template>
-        {{ wifiStaApInfo.mac }}
+        <p>{{ wifiStaApInfo.mac }}</p>
+      </el-descriptions-item>
+      <el-descriptions-item span="4">
+        <template #label>
+          <div>IP(内网地址)</div>
+        </template>
+        <p>{{ wifiStaApInfo.ip }}</p>
       </el-descriptions-item>
       <el-descriptions-item span="4">
         <template #label>
@@ -151,23 +149,111 @@
             网关
           </div>
         </template>
-        {{ wifiStaApInfo.gateway }}
+        <p>{{ wifiStaApInfo.gateway }}</p>
       </el-descriptions-item>
-
       <el-descriptions-item span="4">
         <template #label>
           <div>
             掩码
           </div>
         </template>
-        {{ wifiStaApInfo.netmask }}
+        <p>{{ wifiStaApInfo.netmask }}</p>
+      </el-descriptions-item>
+      <el-descriptions-item span="4">
+        <template #label>
+          <div>
+            首选DNS
+          </div>
+        </template>
+        <p>{{ wifiStaApInfo.dns_main }}</p>
+      </el-descriptions-item>
+      <el-descriptions-item span="4">
+        <template #label>
+          <div>
+            备用DNS
+          </div>
+        </template>
+        <p>{{ wifiStaApInfo.dns_backup }}</p>
+      </el-descriptions-item>
+
+      <el-descriptions-item span="4">
+        <template #label>
+          <div>
+            IP分配模式
+          </div>
+        </template>
+        <el-select v-model="wifiStaticInfo.static_ip_en" :disabled="wsStore.state != ControlEvent.CONNECTED">
+          <el-option
+              v-for="item in staIPModeOptions"
+              :key="item.key"
+              :value="item.key"
+              :label="item.label"
+          />
+        </el-select>
+      </el-descriptions-item>
+      <el-descriptions-item span="4" v-if="wifiStaticInfo.static_ip_en">
+        <template #label>
+          <div>IP(内网地址)</div>
+        </template>
+        <el-input v-model="wifiStaticInfo.ip"></el-input>
+      </el-descriptions-item>
+      <el-descriptions-item span="4" v-if="wifiStaticInfo.static_ip_en">
+        <template #label>
+          <div>
+            网关
+          </div>
+        </template>
+        <el-input v-model="wifiStaticInfo.gateway"></el-input>
+      </el-descriptions-item>
+      <el-descriptions-item span="4" v-if="wifiStaticInfo.static_ip_en">
+        <template #label>
+          <div>
+            掩码
+          </div>
+        </template>
+        <el-input v-model="wifiStaticInfo.netmask"></el-input>
+      </el-descriptions-item>
+
+      <el-descriptions-item span="4">
+        <template #label>
+          <div>
+            DNS模式
+          </div>
+        </template>
+        <el-select v-model="wifiStaticInfo.static_dns_en" :disabled="wsStore.state != ControlEvent.CONNECTED">
+          <el-option
+              v-for="item in staDNSModeOptions"
+              :key="item.key"
+              :value="item.key"
+              :label="item.label"
+          />
+        </el-select>
+      </el-descriptions-item>
+      <el-descriptions-item span="4" v-if="wifiStaticInfo.static_dns_en">
+        <template #label>
+          <div>
+            首选DNS
+          </div>
+        </template>
+        <el-input v-model="wifiStaticInfo.dns_main"></el-input>
+      </el-descriptions-item>
+      <el-descriptions-item span="4" v-if="wifiStaticInfo.static_dns_en">
+        <template #label>
+          <div>
+            备用DNS
+          </div>
+        </template>
+        <el-input v-model="wifiStaticInfo.dns_backup"></el-input>
       </el-descriptions-item>
     </el-descriptions>
+    <div class="flex justify-center mt-4">
+      <el-button type="primary" :loading="wifiMode_loading" @click="wifiStaSetStaticInfo">保存</el-button>
+    </div>
 
     <el-divider></el-divider>
 
     <el-descriptions
-        title="Wi-Fi热点(AP)信息(调试器自发热点)"
+        title="Wi-Fi自发热点(AP)信息"
         :column="1"
         border
         class="description-style"
@@ -257,7 +343,8 @@ import {
   WifiMode,
   type WifiScanInfo,
   type WiFiCredential,
-  WifiStatus,
+  WifiStatus, wifi_sta_get_static_info,
+  type IWifiStaStaticInfo, wifi_sta_set_static_conf,
 } from "@/api/apiWifi";
 import type {FormInstance} from "element-plus";
 
@@ -283,17 +370,15 @@ let wifiAp_On = ref(false);
 
 let wifiMode = ref(-1);
 
-const wifiTestString = ref("666");
-
 let wifiModeOptions = [
   {
-    label: "智能热点+常开终端（AP+STA）",
+    label: "智能热点+常开终端 (AP+STA)",
     key: WifiMode.WIFI_AP_AUTO_STA_ON,
   }, {
-    label: "仅开启热点（AP）",
+    label: "仅开启热点 (AP)",
     key: WifiMode.WIFI_AP_ON_STA_OFF,
   }, {
-    label: "[不推荐] 常开热点+常开终端（AP+STA）",
+    label: "[不推荐] 常开热点+常开终端 (AP+STA)",
     key: WifiMode.WIFI_AP_STA_ON,
   }, /* {
     value: "仅开启终端（STA）",
@@ -310,14 +395,44 @@ const defWifiInfo: WifiInfo = {
   gateway: "未连接",
   ip: "未连接",
   mac: "未连接",
+  dns_main: "未连接",
+  dns_backup: "未连接",
   rssi: 0,
   netmask: "未连接",
   ssid: "未连接",
   password: "",
 }
+const staIPModeOptions = [
+  {
+    label: "自动 (DHCP)",
+    key: 0,
+  }, {
+    label: "静态IP",
+    key: 1,
+  },
+]
+
+const staDNSModeOptions = [
+  {
+    label: "自动 (使用网关)",
+    key: 0,
+  }, {
+    label: "静态DNS",
+    key: 1,
+  },
+]
 
 let wifiStaApInfo = reactive<WifiInfo>({...defWifiInfo});
 let wifiApInfo = reactive<WifiInfo>({...defWifiInfo});
+let wifiStaticInfo = reactive<IWifiStaStaticInfo>({
+  dns_backup: "0.0.0.0",
+  dns_main: "0.0.0.0",
+  gateway: "0.0.0.0",
+  ip: "0.0.0.0",
+  netmask: "0.0.0.0",
+  static_dns_en: 0,
+  static_ip_en: 0,
+});
 
 let scanning = ref(false);
 let scan_cb: any;
@@ -349,6 +464,7 @@ const onClientMsg = (msg: ApiJsonMsg) => {
       if (connectBtnClicked) {
         connectBtnClicked = 0;
         globalNotifyRightSide(wifiStaApInfo.ssid + " 连接成功", "success");
+        wifi_sta_get_static_info();
       }
       break;
     }
@@ -409,7 +525,6 @@ const onClientMsg = (msg: ApiJsonMsg) => {
           wifiSta_On.value = false;
         }
       }
-      console.log("@@@", wifiAp_On.value);
       break;
     }
     case WifiCmd.WIFI_API_JSON_AP_SET_CRED: {
@@ -423,6 +538,15 @@ const onClientMsg = (msg: ApiJsonMsg) => {
 
       break;
     }
+    case WifiCmd.WIFI_API_JSON_STA_GET_STATIC_INFO: {
+      const staticInfo = msg as IWifiStaStaticInfo & ApiJsonMsg;
+      console.log("@@@", staticInfo);
+      Object.assign(wifiStaticInfo, staticInfo);
+      break;
+    }
+    case WifiCmd.WIFI_API_JSON_STA_SET_STATIC_CONF:
+      wifiMode_loading.value = false;
+      break;
     default:
       if (isDevMode()) {
         console.log(msg);
@@ -445,6 +569,7 @@ const onClientCtrl = (msg: ControlMsg) => {
     wifi_sta_get_ap_info();
     wifi_ap_get_info();
     wifi_get_mode();
+    wifi_sta_get_static_info();
   }
 };
 
@@ -476,6 +601,7 @@ function beforeWifiModeChange(ap_sta: "AP" | "STA" = "AP") {
     wifiMode_loading.value = true;
     wifi_set_mode(wifiSta_On.value ? WifiMode.WIFI_STA_STOP : WifiMode.WIFI_STA_START);
   }
+  wifi_sta_get_ap_info();
   return false;
 }
 
@@ -493,6 +619,12 @@ function wifiApChangeCredential() {
   wifi_ap_set_credential(wifiApInfo.ssid, wifiApInfo.password);
 }
 
+function wifiStaSetStaticInfo() {
+  wifiMode_loading.value = true;
+  wifi_sta_set_static_conf(wifiStaticInfo);
+  wifi_sta_get_ap_info();
+}
+
 onMounted(() => {
   registerModule(WtModuleID.WIFI, {
     ctrlCallback: onClientCtrl,
@@ -502,12 +634,12 @@ onMounted(() => {
   wifi_sta_get_ap_info();
   wifi_ap_get_info();
   wifi_get_mode();
+  wifi_sta_get_static_info();
 });
 
 onUnmounted(() => {
   unregisterModule(WtModuleID.WIFI);
 });
-
 
 </script>
 
