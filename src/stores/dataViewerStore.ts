@@ -54,43 +54,77 @@ function unescapeString(str: string): Uint8Array {
             i++;
             switch (str[i]) {
                 case 'n':
-                    resultArray.push('\n'.charCodeAt(0));
+                    resultArray.push(0x0A); // LF
                     break;
                 case 'r':
-                    resultArray.push('\r'.charCodeAt(0));
+                    resultArray.push(0x0D); // CR
                     break;
                 case 't':
-                    resultArray.push('\t'.charCodeAt(0));
+                    resultArray.push(0x09); // Tab
                     break;
                 case 'b':
-                    resultArray.push('\b'.charCodeAt(0));
+                    resultArray.push(0x08); // Backspace
                     break;
                 case 'v':
-                    resultArray.push('\v'.charCodeAt(0));
+                    resultArray.push(0x0B); // Vertical Tab
                     break;
                 case '0':
-                    resultArray.push('\0'.charCodeAt(0));
+                    resultArray.push(0x00); // Null
                     break;
                 case 'x':
                     if (i + 2 < str.length) {
-                        const hex = str.slice(i + 1, i + 3);
-                        resultArray.push(parseInt(hex, 16));
+                        resultArray.push(parseInt(str.substr(i + 1, 2), 16));
                         i += 2;
                     }
                     break;
                 case 'u':
                     if (i + 4 < str.length) {
-                        const hex = str.slice(i + 1, i + 5);
-                        resultArray.push(parseInt(hex, 16));
+                        const codePoint = parseInt(str.substr(i + 1, 4), 16);
+                        if (codePoint < 0x80) {
+                            resultArray.push(codePoint);
+                        } else if (codePoint < 0x800) {
+                            resultArray.push(192 | (codePoint >> 6));
+                            resultArray.push(128 | (codePoint & 63));
+                        } else if (codePoint < 0x10000) {
+                            resultArray.push(224 | (codePoint >> 12));
+                            resultArray.push(128 | ((codePoint >> 6) & 63));
+                            resultArray.push(128 | (codePoint & 63));
+                        } else {
+                            resultArray.push(240 | (codePoint >> 18));
+                            resultArray.push(128 | ((codePoint >> 12) & 63));
+                            resultArray.push(128 | ((codePoint >> 6) & 63));
+                            resultArray.push(128 | (codePoint & 63));
+                        }
                         i += 4;
                     }
                     break;
                 default:
+                    // This handles any escaped character that is not a special character
                     resultArray.push(str[i].charCodeAt(0));
                     break;
             }
         } else {
-            resultArray.push(str[i].charCodeAt(0));
+            // This section now properly converts a direct character to UTF-8 when it's beyond the ASCII range
+            const code = str.codePointAt(i);
+            if (code == undefined) {
+                continue
+            }
+            if (code < 0x80) {
+                resultArray.push(code);
+            } else if (code < 0x800) {
+                resultArray.push(192 | (code >> 6));
+                resultArray.push(128 | (code & 63));
+            } else if (code < 0x10000) {
+                resultArray.push(224 | (code >> 12));
+                resultArray.push(128 | ((code >> 6) & 63));
+                resultArray.push(128 | (code & 63));
+            } else {
+                resultArray.push(240 | (code >> 18));
+                resultArray.push(128 | ((code >> 12) & 63));
+                resultArray.push(128 | ((code >> 6) & 63));
+                resultArray.push(128 | (code & 63));
+                i++; // Move past the second part of the surrogate pair
+            }
         }
         i++;
     }
@@ -529,6 +563,7 @@ export const useDataViewerStore = defineStore('text-viewer', () => {
     }, 200);
 
     function addString(item: string, isRX: boolean = false, doSend: boolean = false, type: number = 0) {
+        console.log(item);
         const unescaped = unescapeString(item);
         return addItem(unescaped, isRX, doSend, type);
     }
