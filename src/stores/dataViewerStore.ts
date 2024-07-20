@@ -753,6 +753,63 @@ export const useDataViewerStore = defineStore('text-viewer', () => {
         uartBaud.value = baud;
     }
 
+
+    const enableLoopSend = ref(false);
+    const loopSendFreq = ref(1000);
+    let loopSendIntervalID: number = -1;
+    const uartInputTextBox = ref("");
+    const isSendTextFormat = ref(true);
+    const isHexStringValid = ref(false);
+
+    function loopSend() {
+        if (!acceptIncomingData.value) {
+            enableLoopSend.value = false;
+        }
+
+        if (isSendTextFormat.value) {
+            addString(uartInputTextBox.value, false, true);
+        } else {
+            if (!isHexStringValid.value) {
+                addString("HEX格式错误", false, false, 1);
+                addHexString(uartInputTextBox.value, false, false, 1);
+            } else {
+                addHexString(uartInputTextBox.value, false, true);
+            }
+        }
+    }
+
+    watch(enableLoopSend, (newValue) => {
+        if (newValue) {
+            if (loopSendIntervalID !== -1) {
+                clearInterval(loopSendIntervalID);
+            }
+            loopSendIntervalID = setInterval(loopSend, loopSendFreq.value);
+        } else {
+            clearInterval(loopSendIntervalID);
+            loopSendIntervalID = -1;
+        }
+    });
+
+    watch(loopSendFreq, (value) => {
+        if (enableLoopSend.value && value) {
+            /* update interval with new value */
+            if (loopSendIntervalID !== -1) {
+                clearInterval(loopSendIntervalID);
+            }
+            loopSendIntervalID = setInterval(loopSend, loopSendFreq.value);
+        }
+    })
+
+    const loopSendRet = {
+        enableLoopSend,
+        loopSendFreq,
+        loopSendIntervalID,
+        isSendTextFormat,
+        uartInputTextBox,
+        isHexStringValid,
+    }
+
+
     return {
         addItem,
         addString,
@@ -804,5 +861,6 @@ export const useDataViewerStore = defineStore('text-viewer', () => {
         uartConfig,
         uartBaudReal,
         setUartBaud,
+        ...loopSendRet,
     }
 });

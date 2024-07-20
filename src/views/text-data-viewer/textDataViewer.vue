@@ -58,39 +58,6 @@
         </el-checkbox>
       </el-tooltip>
     </div>
-
-
-<!--        <div class="flex">-->
-<!--          <el-button size="small" @click="addItem(1)">add1</el-button>-->
-<!--          <el-button size="small" @click="addItem(10)">add10</el-button>-->
-<!--          <el-button size="small" @click="addItem(100)">add100</el-button>-->
-<!--          <el-button size="small" @click="addItem(1000)">add1000</el-button>-->
-<!--          <el-button size="small" @click="scrollToBottom">scrollToBottom</el-button>-->
-<!--          <el-button @click="toggleAutoBottom">autoBot: {{ forceToBottom }}</el-button>-->
-<!--          <el-checkbox size="small" v-model="store.forceToBottom" :label="'autoBot:' + store.forceToBottom" border></el-checkbox>-->
-<!--          <el-button>{{ count }}, {{ items.length }}, {{ vuetifyVirtualScrollBarRef.scrollTop }},-->
-<!--            {{ vuetifyVirtualScrollBarRef.clientHeight }}, {{ vuetifyVirtualScrollBarRef.scrollHeight }}-->
-<!--          </el-button>-->
-<!--          <el-button @click="updateScroll">{{ scrollTop }}, {{ clientHeight }}, {{ scrollHeight }}</el-button>-->
-<!--        </div>-->
-
-<!--    <div>-->
-<!--      <el-popover-->
-<!--          placement="bottom"-->
-<!--          trigger="click"-->
-<!--          :hide-after="0"-->
-<!--          transition="none"-->
-<!--          width="300"-->
-<!--      >-->
-<!--        <div id="quick-access-panel-tp" class="bg-amber-200"></div>-->
-<!--        <template #reference>-->
-<!--          <el-link class="content-center" v-show="!store.quickAccessPanelShow">-->
-<!--            <InlineSvg name="arrow_drop_down" class="h-7"></InlineSvg>-->
-<!--            666-->
-<!--          </el-link>-->
-<!--        </template>-->
-<!--      </el-popover>-->
-<!--    </div>-->
   </div>
 
   <div class="flex flex-grow overflow-hidden border-2 rounded scroll-m-2">
@@ -188,11 +155,11 @@
 
       <el-tooltip content="实际频率受界面刷新率影响，如需要更精确，可以尝试关闭‘自动刷新’" placement="right" effect="light" :show-after="1000">
         <div class="flex align-center">
-          <el-checkbox v-model="enableLoopSend" class="font-mono font-bold max-h-5" size="small" border>
+          <el-checkbox v-model="store.enableLoopSend" class="font-mono font-bold max-h-5" size="small" border>
             循环发送(ms)
           </el-checkbox>
           <el-input-number
-              v-model="loopSendFreq"
+              v-model="store.loopSendFreq"
               class="h-5"
               size="small"
               :step="10"
@@ -202,8 +169,8 @@
         </div>
       </el-tooltip>
 
-      <el-link @click="isSendTextFormat = !isSendTextFormat">
-        <el-tag class="font-mono font-bold" size="small">发送格式：{{ isSendTextFormat ? "文本" : "HEX" }}</el-tag>
+      <el-link @click="store.isSendTextFormat = !store.isSendTextFormat">
+        <el-tag class="font-mono font-bold" size="small">发送格式：{{ store.isSendTextFormat ? "文本" : "HEX" }}</el-tag>
       </el-link>
     </div>
     <div class="flex gap-2">
@@ -228,8 +195,8 @@
     </div>
   </div>
   <div class="flex flex-row font-mono">
-    <el-input type="textarea" :autosize="{ minRows: 1, maxRows: 6}" v-model="uartInputTextBox" clearable
-              :placeholder="isSendTextFormat ?
+    <el-input type="textarea" :autosize="{ minRows: 1, maxRows: 6}" v-model="store.uartInputTextBox" clearable
+              :placeholder="store.isSendTextFormat ?
               '输入文本，支持\\n\\x转义' :
               '输入HEX格式'"
               @keydown="handleTextboxKeydown"
@@ -237,7 +204,7 @@
     <el-tooltip content="Ctrl+回车" placement="top" :auto-close="500">
       <el-button type="primary"
                  @click="onSendClick">
-        {{ (isSendTextFormat || isHexStringValid) ? "发送" : "格式化" }}
+        {{ (store.isSendTextFormat || store.isHexStringValid) ? "发送" : "格式化" }}
       </el-button>
     </el-tooltip>
   </div>
@@ -255,14 +222,6 @@ const count = ref(0);
 const vuetifyVirtualScrollBarRef = ref(document.body);
 const vuetifyVirtualScrollContainerRef = ref(document.body);
 
-const enableLoopSend = ref(false);
-const loopSendFreq = ref(1000);
-let loopSendIntervalID: number = -1;
-
-const isSendTextFormat = ref(true)
-const isHexStringValid = ref(false);
-
-const uartInputTextBox = ref("")
 const store = useDataViewerStore();
 
 const RxHexDumpRef = ref(document.body);
@@ -303,6 +262,9 @@ onMounted(() => {
 
 onUnmounted(() => {
   mutationObserver.disconnect();
+  if (!store.isHexStringValid) {
+    store.uartInputTextBox = formatHexInput(store.uartInputTextBox);
+  }
 });
 
 debouncedWatch(() => store.showVirtualScroll, () => {
@@ -381,40 +343,21 @@ function formatHexInput(input: string) {
 }
 
 function checkHexTextValid() {
-  isHexStringValid.value = uartInputTextBox.value.toUpperCase() === formatHexInput(uartInputTextBox.value);
+  store.isHexStringValid = store.uartInputTextBox.toUpperCase() === formatHexInput(store.uartInputTextBox);
+  if (!store.isHexStringValid) {
+    store.enableLoopSend = false;
+  }
 }
 
-watch(isSendTextFormat, (value) => {
+watch(() => store.isSendTextFormat, (value) => {
   if (!value) {
     checkHexTextValid()
   }
 });
 
-watch(() => uartInputTextBox.value, () => {
-  if (!isSendTextFormat.value) {
+watch(() => store.uartInputTextBox, () => {
+  if (!store.isSendTextFormat) {
     checkHexTextValid()
-  }
-})
-
-watch(enableLoopSend, (newValue) => {
-  if (newValue) {
-    if (loopSendIntervalID !== -1) {
-      clearInterval(loopSendIntervalID);
-    }
-    loopSendIntervalID = setInterval(onSendClick, loopSendFreq.value);
-  } else {
-    clearInterval(loopSendIntervalID);
-    loopSendIntervalID = -1;
-  }
-});
-
-watch(loopSendFreq, (value) => {
-  if (enableLoopSend.value && value) {
-    /* update interval with new value */
-    if (loopSendIntervalID !== -1) {
-      clearInterval(loopSendIntervalID);
-    }
-    loopSendIntervalID = setInterval(onSendClick, loopSendFreq.value);
   }
 })
 
@@ -459,7 +402,7 @@ watch(() => store.forceToBottom, value => {
 });
 
 function clearSendInput() {
-  uartInputTextBox.value = ""
+  store.uartInputTextBox = ""
 }
 
 function handleTextboxKeydown(ev: KeyboardEvent) {
@@ -469,26 +412,26 @@ function handleTextboxKeydown(ev: KeyboardEvent) {
 }
 
 function onSendClick() {
-  if (!uartInputTextBox.value && !store.hasAddedText) {
+  if (!store.uartInputTextBox && !store.hasAddedText) {
     globalNotify("无帧头帧尾、发送框无数据发送")
     return;
   }
 
   if (store.acceptIncomingData) {
-    if (isSendTextFormat.value) {
-      store.addString(uartInputTextBox.value, false, true);
-    } else if (!isHexStringValid.value) {
-      uartInputTextBox.value = formatHexInput(uartInputTextBox.value);
+    if (store.isSendTextFormat) {
+      store.addString(store.uartInputTextBox, false, true);
+    } else if (!store.isHexStringValid) {
+      store.uartInputTextBox = formatHexInput(store.uartInputTextBox);
     } else {
-      store.addHexString(uartInputTextBox.value, false, true);
+      store.addHexString(store.uartInputTextBox, false, true);
     }
   } else {
-    if (isSendTextFormat.value) {
-      store.addString(uartInputTextBox.value, false, true, 1);
-    } else if (!isHexStringValid.value) {
-      uartInputTextBox.value = formatHexInput(uartInputTextBox.value);
+    if (store.isSendTextFormat) {
+      store.addString(store.uartInputTextBox, false, true, 1);
+    } else if (!store.isHexStringValid) {
+      store.uartInputTextBox = formatHexInput(store.uartInputTextBox);
     } else {
-      store.addHexString(uartInputTextBox.value, false, true, 1);
+      store.addHexString(store.uartInputTextBox, false, true, 1);
     }
   }
 }
