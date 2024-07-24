@@ -404,14 +404,6 @@ function updateUartData() {
   df.wt_data_flow_attach_cur_to_sender(0);
 }
 
-watch(() => store.uartBaud, value => {
-  uart_set_baud(value, uartStore.uartNum);
-});
-
-watch(() => store.uartConfig, value => {
-  uart_set_config(value, uartStore.uartNum);
-}, {deep: true});
-
 onMounted(() => {
   registerModule(api.WtModuleID.UART, {
     ctrlCallback: onClientCtrl,

@@ -10,7 +10,7 @@
                 class="mb-2"
             >
               <div class="flex w-full">
-                <el-select v-model="store.uartBaud" :teleported="false">
+                <el-select v-model="store.uartBaud" :teleported="false" @change="onUartBaudChange">
                   <template #header>
                     <div class="overflow-auto max-h-40">
                       <div class="flex gap-0">
@@ -51,7 +51,8 @@
             <p class="text-xs">实际波特率:{{ store.uartBaudReal }}</p>
 
             <el-form-item label="数据位" class="mb-2">
-              <el-select v-model="store.uartConfig.data_bits" :teleported="false" placeholder="Select">
+              <el-select v-model="store.uartConfig.data_bits" :teleported="false"
+                         placeholder="Select" @change="onUartConfigChange">
                 <el-option
                     v-for="item in uartDataBitsOptions"
                     :key="item.key"
@@ -62,7 +63,8 @@
             </el-form-item>
 
             <el-form-item label="校验位" class="mb-2">
-              <el-select v-model="store.uartConfig.parity" :teleported="false" placeholder="Select">
+              <el-select v-model="store.uartConfig.parity" :teleported="false"
+                         placeholder="Select" @change="onUartConfigChange">
                 <el-option
                     v-for="item in uartParityOptions"
                     :key="item.key"
@@ -73,7 +75,8 @@
             </el-form-item>
 
             <el-form-item label="停止位">
-              <el-select v-model="store.uartConfig.stop_bits" :teleported="false" placeholder="Select">
+              <el-select v-model="store.uartConfig.stop_bits" :teleported="false"
+                         placeholder="Select" @change="onUartConfigChange">
                 <el-option
                     v-for="item in uartStopBitsOptions"
                     :key="item.key"
@@ -343,8 +346,11 @@ import type {MoveEvent} from "sortablejs";
 import InlineSvg from "@/components/InlineSvg.vue";
 import {useDataFlowStore} from "@/stores/useDataFlowStore";
 import {wt_data_flow_get_instance_list, type ISocketInfo} from "@/api/apiDataFlow";
+import {uart_set_baud, uart_set_config} from "@/api/apiUart";
+import {useUartStore} from "@/stores/useUartStore";
 
 const store = useDataViewerStore()
+const uartStore = useUartStore()
 const wsStore = useWsStore()
 const dfStore = useDataFlowStore()
 
@@ -398,9 +404,18 @@ const uartStopBitsOptions = [
 const onUseCustomUartBaud = () => {
   if (uartCustomBaud.value) {
     store.uartBaud = uartCustomBaud.value;
+    onUartBaudChange();
   } else {
     globalNotify("波特率格式错误", "warning")
   }
+}
+
+function onUartBaudChange() {
+  uart_set_baud(store.uartBaud, uartStore.uartNum);
+}
+
+function onUartConfigChange() {
+  uart_set_config(store.uartConfig, uartStore.uartNum);
 }
 
 function checkMove(event: MoveEvent) {
