@@ -60,14 +60,13 @@
       <div class="flex shrink-0">
         <el-tooltip effect="light">
           <template #content>
-            <p>热点+终端模式并存会影响稳定性。且保持热点开启会增加功耗。</p>
             <p>
               <el-text size="small">智能模式：</el-text>
               成功连接Wi-Fi，30秒后自动关闭热点；断开连接，5秒后自动打开热点
             </p>
             <p>
               <el-text size="small">热点+终端共存模式：</el-text>
-              方便使用，但是影响稳定性
+              方便使用，但是影响稳定性，增加功耗
             </p>
             <p>
               <el-text size="small">单热点模式缺点：</el-text>
@@ -378,7 +377,7 @@ let wifiModeOptions = [
     label: "仅开启热点 (AP)",
     key: WifiMode.WIFI_AP_ON_STA_OFF,
   }, {
-    label: "[不推荐] 常开热点+常开终端 (AP+STA)",
+    label: "常开热点+常开终端 (AP+STA)",
     key: WifiMode.WIFI_AP_STA_ON,
   }, /* {
     value: "仅开启终端（STA）",
