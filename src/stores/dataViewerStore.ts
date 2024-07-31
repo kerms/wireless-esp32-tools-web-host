@@ -834,6 +834,39 @@ export const useDataViewerStore = defineStore('text-viewer', () => {
         isHexStringValid,
     }
 
+    interface WinProperty {
+        show: boolean;
+        width: string;
+        height: string;
+        borderSize: number;
+    }
+
+    /* window layout */
+    const winLeft = useStorage('winLeft',{
+        show: true,
+        width: "100px",
+        height: "100px",
+        borderSize: 3,
+    });
+
+    /* window layout */
+    const winRight = useStorage('winRight',{
+        show: true,
+        width: "100px",
+        height: "100px",
+        borderSize: 3,
+    });
+
+    const winAutoLayout = useStorage('winAuto', true);
+    const winLayoutMode = useStorage('winLayout', 'row');
+
+
+    const winLayoutRet = {
+        winLeft,
+        winRight,
+        winAutoLayout,
+        winLayoutMode,
+    }
 
     return {
         addItem,
@@ -887,5 +920,6 @@ export const useDataViewerStore = defineStore('text-viewer', () => {
         uartBaudReal,
         setUartBaud,
         ...loopSendRet,
+        ...winLayoutRet,
     }
 });

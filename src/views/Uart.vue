@@ -1,28 +1,28 @@
 <template>
-  <div class="button-m-0 messages-container flex flex-grow overflow-hidden" :class="{'flex-col': layoutMode==='col'}">
+  <div class="button-m-0 messages-container flex flex-grow overflow-hidden" :class="{'flex-col': store.winLayoutMode ==='col'}">
     <div v-show="store.configPanelShow" ref="win1Ref" class="bg-gray-50 flex-shrink-0 overflow-auto"
          :class="{
-      'max-w-60': layoutMode==='row', 'xl:max-w-80': layoutMode==='row',
-      'min-w-60': layoutMode==='row', 'xl:min-w-80': layoutMode==='row'
+      'max-w-60': store.winLayoutMode==='row', 'xl:max-w-80': store.winLayoutMode==='row',
+      'min-w-60': store.winLayoutMode==='row', 'xl:min-w-80': store.winLayoutMode==='row'
     }"
     >
       <text-data-config></text-data-config>
     </div>
 
-    <div v-show="store.configPanelShow && (winDataView.show || win2.show)" ref="firstWinResizeRef"></div>
+    <div v-show="store.configPanelShow && (winDataView.show || store.winRight.show)" ref="firstWinResizeRef"></div>
 
     <div v-show="winDataView.show" class="flex flex-col flex-grow overflow-hidden p-2">
       <textDataViewer></textDataViewer>
     </div>
 
-    <div v-show="winDataView.show && win2.show" ref="thirdWinResizeRef"></div>
+    <div v-show="winDataView.show && store.winRight.show" ref="thirdWinResizeRef"></div>
 
-    <div v-show="win2.show" ref="win2Ref" :class="{
-      'max-w-80': layoutMode==='row', 'xl:max-w-96': layoutMode==='row',
-      'min-w-80': layoutMode==='row', 'xl:min-w-96': layoutMode==='row'
+    <div v-show="store.winRight.show" ref="win2Ref" :class="{
+      'max-w-80': store.winLayoutMode==='row', 'xl:max-w-96': store.winLayoutMode==='row',
+      'min-w-80': store.winLayoutMode==='row', 'xl:min-w-96': store.winLayoutMode==='row'
     }"
          class="bg-gray-50 flex flex-col flex-shrink-0 min-h-32 overflow-auto p-2">
-      <TextDataMacro></TextDataMacro>
+      <TextDataMacro @winSizeRefresh="handleWinSizeRefresh"></TextDataMacro>
     </div>
   </div>
 
@@ -36,13 +36,13 @@
       >
         <div class="button-m-0 flex flex-col space-y-2">
           <div class="custom-style flex justify-center">
-            <el-segmented v-model="layoutMode" :options="layoutOptions" size="small"/>
+            <el-segmented v-model="store.winLayoutMode" :options="layoutOptions" size="small"/>
           </div>
-          <el-checkbox label="自适应" v-model="layoutConf.isAutoHide" border size="small"
-                       :disabled="layoutMode==='col'"/>
-          <el-checkbox label="设置窗" v-model="store.configPanelShow" border size="small" :disabled="layoutConf.isAutoHide"/>
-          <el-checkbox label="数据窗" v-model="winDataView.show" border size="small" :disabled="layoutConf.isAutoHide"/>
-          <el-checkbox label="快捷窗" v-model="win2.show" border size="small" :disabled="layoutConf.isAutoHide"/>
+          <el-checkbox label="自适应" v-model="store.winAutoLayout" border size="small"
+                       :disabled="store.winLayoutMode==='col'"/>
+          <el-checkbox label="设置窗" v-model="store.configPanelShow" border size="small" :disabled="store.winAutoLayout"/>
+          <el-checkbox label="数据窗" v-model="winDataView.show" border size="small" :disabled="store.winAutoLayout"/>
+          <el-checkbox label="快捷窗" v-model="store.winRight.show" border size="small" :disabled="store.winAutoLayout"/>
         </div>
 
         <template #reference>
@@ -68,10 +68,12 @@ import {
   uart_get_baud,
   uart_get_config,
   uart_get_default_num,
-  uart_set_baud,
-  uart_set_config,
   WtUartCmd
 } from '@/api/apiUart';
+
+/* TODO: use https://antoniandre.github.io/splitpanes/ */
+
+
 import {type ApiBinaryMsg} from '@/api/binDataDef';
 import * as df from '@/api/apiDataFlow';
 import textDataViewer from "@/views/text-data-viewer/textDataViewer.vue";
@@ -96,7 +98,6 @@ const breakpoints = useBreakpoints(breakpointsTailwind)
 const layoutConf = reactive({
   isSmall: breakpoints.smaller("sm"),
   isMedium: breakpoints.smaller("lg"),
-  isAutoHide: ref(true)
 });
 
 const layoutOptions = [{
@@ -107,8 +108,6 @@ const layoutOptions = [{
   value: 'col'
 }]
 
-const layoutMode = ref(layoutOptions[0].value);
-
 interface WinProperty {
   show: boolean;
   width: string;
@@ -116,19 +115,6 @@ interface WinProperty {
   borderSize: number;
 }
 
-const win1 = reactive<WinProperty>({
-  show: true,
-  width: "100px",
-  height: "100px",
-  borderSize: 3,
-});
-
-const win2 = reactive<WinProperty>({
-  show: true,
-  width: "100px",
-  height: "100px",
-  borderSize: 3,
-});
 
 const winDataView = reactive({
   show: true,
@@ -140,7 +126,7 @@ const ctx = reactive({
 });
 
 function updateCursor(i: HTMLElement) {
-  if (layoutMode.value === 'row') {
+  if (store.winLayoutMode === 'row') {
     i.style.cursor = "col-resize";
   } else {
     i.style.cursor = "row-resize";
@@ -148,7 +134,7 @@ function updateCursor(i: HTMLElement) {
 }
 
 function updateWin(r: Ref<HTMLElement>, p: UnwrapRef<WinProperty>) {
-  if (layoutMode.value === 'row') {
+  if (store.winLayoutMode === 'row') {
     r.value.style.minHeight = "";
     r.value.style.maxHeight = ""
     if (winDataView.show) {
@@ -172,14 +158,14 @@ function updateCursors() {
 
 function updateResizer() {
   updateCursors();
-  updateWin(win1Ref, win1);
-  updateWin(win2Ref, win2);
+  updateWin(win1Ref, store.winLeft);
+  updateWin(win2Ref, store.winRight);
 }
 
 function mouseResize(e: MouseEvent) {
   const curTarget = e.target as HTMLElement
 
-  if (layoutMode.value === 'row') {
+  if (store.winLayoutMode === 'row') {
     let f = e.clientX;
     if (ctx.curResizeTarget === "first") {
       win1Ref.value.style.minWidth = f + "px";
@@ -190,8 +176,8 @@ function mouseResize(e: MouseEvent) {
             "layerX", e.layerX, "layerY", e.layerY, "offsetX", e.offsetX, "offsetY", e.offsetY,
             "pageX", e.pageX, "pageY", e.pageY, win2Ref.value.clientHeight);
       }
-      win2Ref.value.style.minWidth = document.body.scrollWidth - f - win2.borderSize + "px";
-      win2Ref.value.style.maxWidth = document.body.scrollWidth - f - win2.borderSize + "px";
+      win2Ref.value.style.minWidth = document.body.scrollWidth - f - store.winRight.borderSize + "px";
+      win2Ref.value.style.maxWidth = document.body.scrollWidth - f - store.winRight.borderSize + "px";
     }
   } else {
     /* col mode */
@@ -215,14 +201,14 @@ function touchResize(e: TouchEvent) {
   let t = e.touches[0];
   let f: number;
 
-  if (layoutMode.value === 'row') {
+  if (store.winLayoutMode === 'row') {
     f = t.clientX;
     if (ctx.curResizeTarget === "first") {
       win1Ref.value.style.minWidth = f + "px";
       win1Ref.value.style.maxWidth = f + "px";
     } else {
-      win2Ref.value.style.minWidth = document.body.scrollWidth - f - win2.borderSize + "px";
-      win2Ref.value.style.maxWidth = document.body.scrollWidth - f - win2.borderSize + "px";
+      win2Ref.value.style.minWidth = document.body.scrollWidth - f - store.winRight.borderSize + "px";
+      win2Ref.value.style.maxWidth = document.body.scrollWidth - f - store.winRight.borderSize + "px";
     }
   } else {
     /* column layout mode */
@@ -233,8 +219,8 @@ function touchResize(e: TouchEvent) {
       win1Ref.value.style.maxHeight = f - ctx.curHeightOffset + "px";
     } else {
       /* quick access window */
-      win2Ref.value.style.minHeight = document.body.scrollHeight - f - win2.borderSize + "px";
-      win2Ref.value.style.maxHeight = document.body.scrollHeight - f - win2.borderSize + "px";
+      win2Ref.value.style.minHeight = document.body.scrollHeight - f - store.winRight.borderSize + "px";
+      win2Ref.value.style.maxHeight = document.body.scrollHeight - f - store.winRight.borderSize + "px";
     }
   }
 }
@@ -262,24 +248,24 @@ function startResize(event: Event) {
   win2Ref.value.style.transition = 'initial';
   document.addEventListener("mousemove", mouseResize, false);
   document.addEventListener("touchmove", touchResize, false);
-  layoutConf.isAutoHide = false;
+  store.winAutoLayout = false;
 }
 
 function stopResize() {
   if (win1Ref.value) {
     win1Ref.value.style.transition = '';
-    if (layoutMode.value === "row") {
-      win1.width = win1Ref.value.style.minWidth;
+    if (store.winLayoutMode === "row") {
+      store.winLeft.width = win1Ref.value.style.minWidth;
     } else {
-      win1.height = win1Ref.value.style.minHeight;
+      store.winLeft.height = win1Ref.value.style.minHeight;
     }
   }
   if (win2Ref.value) {
     win2Ref.value.style.transition = '';
-    if (layoutMode.value === "row") {
-      win2.width = win1Ref.value.style.minWidth;
+    if (store.winLayoutMode === "row") {
+      store.winRight.width = win2Ref.value.style.minWidth;
     } else {
-      win2.height = win1Ref.value.style.minHeight;
+      store.winRight.height = win2Ref.value.style.minHeight;
     }
   }
   document.body.style.cursor = '';
@@ -287,19 +273,19 @@ function stopResize() {
   document.removeEventListener("touchmove", touchResize, false);
 }
 
-watch(() => layoutMode.value, (value) => {
+watch(() => store.winLayoutMode, (value) => {
   updateResizer();
   if (value === "col") {
-    layoutConf.isAutoHide = false;
+    store.winAutoLayout = false;
   }
 });
 
 watch([
   () => layoutConf.isSmall,
-  () => layoutConf.isAutoHide
+  () => store.winAutoLayout
 ], (value) => {
-  if (layoutConf.isAutoHide) {
-    win2.show = !value[0];
+  if (store.winAutoLayout) {
+    store.winRight.show = !value[0];
     win1Ref.value.style.minWidth = "";
     win1Ref.value.style.maxWidth = "";
   }
@@ -309,9 +295,9 @@ watch([
 
 watch([
   () => layoutConf.isMedium,
-  () => layoutConf.isAutoHide
+  () => store.winAutoLayout
 ], (value) => {
-  if (layoutConf.isAutoHide) {
+  if (store.winAutoLayout) {
     store.configPanelShow = !value[0];
     win1Ref.value.style.minWidth = "";
     win1Ref.value.style.maxWidth = "";
@@ -337,7 +323,7 @@ watch(() => winDataView.show, value => {
   }
 });
 
-watch(() => win2.show, value => {
+watch(() => store.winRight.show, value => {
   if (!value && !winDataView.show) {
     win1Ref.value.style.maxHeight = "";
     win1Ref.value.style.maxHeight = "";
@@ -404,6 +390,27 @@ function updateUartData() {
   df.wt_data_flow_attach_cur_to_sender(0);
 }
 
+function handleWinSizeRefresh() {
+  if (!store.winAutoLayout) {
+    if (win1Ref.value) {
+      if (store.winLayoutMode === "row") {
+        win1Ref.value.style.minWidth = store.winLeft.width;
+      } else {
+        win1Ref.value.style.minHeight = store.winLeft.height;
+        win1Ref.value.style.maxHeight = store.winRight.height;
+      }
+    }
+    if (win2Ref.value) {
+      if (store.winLayoutMode === "row") {
+        win2Ref.value.style.minWidth = store.winRight.width;
+      } else {
+        win2Ref.value.style.minHeight = store.winRight.height;
+        win2Ref.value.style.maxHeight = store.winRight.height;
+      }
+    }
+  }
+}
+
 onMounted(() => {
   registerModule(api.WtModuleID.UART, {
     ctrlCallback: onClientCtrl,
@@ -411,8 +418,8 @@ onMounted(() => {
     serverBinMsgCallback: onUartBinaryMsg,
   });
 
-  firstWinResizeRef.value.style.borderWidth = win1.borderSize + "px";
-  thirdWinResizeRef.value.style.borderWidth = win2.borderSize + "px";
+  firstWinResizeRef.value.style.borderWidth = store.winLeft.borderSize + "px";
+  thirdWinResizeRef.value.style.borderWidth = store.winRight.borderSize + "px";
   updateCursors()
 
   if (firstWinResizeRef.value) {
@@ -428,6 +435,7 @@ onMounted(() => {
   document.addEventListener("touchend", stopResize, false);
   updateUartData();
   store.acceptIncomingData = wsStore.state === ControlEvent.CONNECTED;
+  handleWinSizeRefresh()
 });
 
 onUnmounted(() => {

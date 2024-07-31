@@ -62,6 +62,7 @@ import {useStorage} from '@vueuse/core';
 const editMode = ref(false);
 const draggableEnabled = ref(true);
 const store = useDataViewerStore();
+const emit = defineEmits(['winSizeRefresh'])
 
 interface macroItem {
   value: string;
