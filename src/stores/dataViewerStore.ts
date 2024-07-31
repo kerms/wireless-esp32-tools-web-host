@@ -5,10 +5,10 @@ import {
     type ShallowReactive,
     ref,
     shallowReactive,
-    watch, reactive
+    watch,
 } from "vue";
 import {AnsiUp} from 'ansi_up'
-import {debouncedWatch} from "@vueuse/core";
+import {debouncedWatch, useStorage} from "@vueuse/core";
 import {type IUartConfig, uart_send_msg} from "@/api/apiUart";
 import {isDevMode} from "@/composables/buildMode";
 import {useUartStore} from "@/stores/useUartStore";
@@ -270,10 +270,10 @@ export const useDataViewerStore = defineStore('text-viewer', () => {
     generateBaudArr(uartBaudList);
 
     /* public value */
-    const configPanelTab = ref("second");
+    const configPanelTab = useStorage("configTab" ,"second");
     const configPanelShow = ref(true);
     const quickAccessPanelShow = ref(true);
-    const enableAnsiDecode = ref(true);
+    const enableAnsiDecode = useStorage("decodeANSI", true);
 
 
     /*
@@ -283,12 +283,12 @@ export const useDataViewerStore = defineStore('text-viewer', () => {
     let RxSegment: Uint8Array = new Uint8Array(0);
     const RxRemainHexdump = ref("");
 
-    const frameBreakSequence = ref("\\n");
-    const frameBreakAfterSequence = ref(true);
+    const frameBreakSequence = useStorage("frameBreakSequence", "\\n");
+    const frameBreakAfterSequence = useStorage("frameBreakAfterSequence", true);
     const frameBreakSequenceNormalized = computed(() => {
         return unescapeString(frameBreakSequence.value);
     });
-    const frameBreakDelay = ref(0);
+    const frameBreakDelay = useStorage("frameBreakDelay", 0);
     let frameBreakDelayTimeoutID: number = -1;
 
     function frameBreakFlush() {
@@ -326,74 +326,98 @@ export const useDataViewerStore = defineStore('text-viewer', () => {
 
 
 
-    const frameBreakSize = ref(0);
-    const frameBreakRules = reactive([{
+    const frameBreakSize = useStorage("frameBreakSize", 0);
+    const frameBreakRules = useStorage("breakRules", [{
         ref: frameBreakDelay,
         name: '超时(ms)',
         type: 'number',
         min: -1,
         draggable: false,
-        transformData: () => {
-            return {result: [] as Uint8Array[], remain: true};
-        }
+        transformData: breakDelay,
     }, {
         ref: frameBreakSequence,
         name: '匹配',
         type: 'text',
         draggable: true,
-        transformData: (inputArray: Uint8Array[]) => {
-            if (frameBreakSequenceNormalized.value.length <= 0) {
-                return {result: inputArray, remain: true};
-            }
-            const result: Uint8Array[] = [];
-            /* if split after, the matched array is appended to the previous */
-            const appendedLength = frameBreakAfterSequence.value ? frameBreakSequenceNormalized.value.length : 0;
-            /* else after the first match, skip the matchArr at the beginning of array in subsequent match */
-            const skipLength = frameBreakAfterSequence.value ? 0 : frameBreakSequenceNormalized.value.length;
-            let startIndex = 0;
-
-            inputArray.forEach(array => {
-                startIndex = 0;
-                let matchIndex = isArrayContained(frameBreakSequenceNormalized.value, array, 0, startIndex);
-
-                while (matchIndex !== -1) {
-                    const endIndex = matchIndex + appendedLength;
-                    if (startIndex !== endIndex) {
-                        result.push(array.subarray(startIndex, endIndex));
-                    }
-                    startIndex = endIndex;
-                    matchIndex = isArrayContained(frameBreakSequenceNormalized.value, array,
-                        0, startIndex + skipLength);
-                }
-                // Add the last segment if there's any remaining part of the array
-                if (startIndex < array.length) {
-                    result.push(array.subarray(startIndex, array.length));
-                }
-            });
-            const remain = startIndex < inputArray[inputArray.length - 1].length;
-            return {result, remain};
-        }
+        transformData: breakDelay,
     }, {
         ref: frameBreakSize,
         name: '字节(B)',
         type: 'number',
         min: 0,
         draggable: true,
-        transformData: (inputArray: Uint8Array[]) => {
-            if (frameBreakSize.value <= 0) {
-                return {result: inputArray, remain: true};
-            }
-            const result: Uint8Array[] = [];
-            inputArray.forEach(item => {
-                for (let start = 0; start < item.length; start += frameBreakSize.value) {
-                    const end = Math.min(start + frameBreakSize.value, item.length);
-                    result.push(item.subarray(start, end));
-                }
-            });
-            const remain = result[result.length - 1].length < frameBreakSize.value;
-            return {result, remain};
-        }
+        transformData: breakDelay,
     },])
+
+    function breakDelay(inputArray: Uint8Array[]) {
+        return {result: [] as Uint8Array[], remain: true};
+    }
+
+    function breakSequence(inputArray: Uint8Array[]) {
+        if (frameBreakSequenceNormalized.value.length <= 0) {
+            return {result: inputArray, remain: true};
+        }
+        const result: Uint8Array[] = [];
+        /* if split after, the matched array is appended to the previous */
+        const appendedLength = frameBreakAfterSequence.value ? frameBreakSequenceNormalized.value.length : 0;
+        /* else after the first match, skip the matchArr at the beginning of array in subsequent match */
+        const skipLength = frameBreakAfterSequence.value ? 0 : frameBreakSequenceNormalized.value.length;
+        let startIndex = 0;
+
+        inputArray.forEach(array => {
+            startIndex = 0;
+            let matchIndex = isArrayContained(frameBreakSequenceNormalized.value, array, 0, startIndex);
+
+            while (matchIndex !== -1) {
+                const endIndex = matchIndex + appendedLength;
+                if (startIndex !== endIndex) {
+                    result.push(array.subarray(startIndex, endIndex));
+                }
+                startIndex = endIndex;
+                matchIndex = isArrayContained(frameBreakSequenceNormalized.value, array,
+                    0, startIndex + skipLength);
+            }
+            // Add the last segment if there's any remaining part of the array
+            if (startIndex < array.length) {
+                result.push(array.subarray(startIndex, array.length));
+            }
+        });
+        const remain = startIndex < inputArray[inputArray.length - 1].length;
+        return {result, remain};
+    }
+
+    function breakSize(inputArray: Uint8Array[]) {
+        if (frameBreakSize.value <= 0) {
+            return {result: inputArray, remain: true};
+        }
+        const result: Uint8Array[] = [];
+        inputArray.forEach(item => {
+            for (let start = 0; start < item.length; start += frameBreakSize.value) {
+                const end = Math.min(start + frameBreakSize.value, item.length);
+                result.push(item.subarray(start, end));
+            }
+        });
+        const remain = result[result.length - 1].length < frameBreakSize.value;
+        return {result, remain};
+    }
+
+    function reloadFrameBreak() {
+        /* function and ref can not be stored in localStorage */
+        for (let i = 0; i < frameBreakRules.value.length; i++) {
+            if (frameBreakRules.value[i].name === "超时(ms)") {
+                frameBreakRules.value[i].transformData = breakDelay;
+                frameBreakRules.value[i].ref = frameBreakDelay;
+            } else if (frameBreakRules.value[i].name === "匹配") {
+                frameBreakRules.value[i].transformData = breakSequence;
+                frameBreakRules.value[i].ref = frameBreakSequence;
+            } else {
+                frameBreakRules.value[i].transformData = breakSize;
+                frameBreakRules.value[i].ref = frameBreakSize;
+            }
+        }
+    }
+
+    reloadFrameBreak();
 
     function addStringMessage(input: string, isRX: boolean, doSend: boolean = false) {
         const unescaped = unescapeString(input);
@@ -417,8 +441,8 @@ export const useDataViewerStore = defineStore('text-viewer', () => {
 
         frames.push(RxSegment);
         /* ready for adding new items */
-        for (let i = 1; i < frameBreakRules.length; i++) {
-            const ret: {result: Uint8Array[], remain: boolean} = frameBreakRules[i].transformData(frames);
+        for (let i = 1; i < frameBreakRules.value.length; i++) {
+            const ret: {result: Uint8Array[], remain: boolean} = frameBreakRules.value[i].transformData(frames);
             /* check if last item changed */
             if (!ret.remain || ret.result[ret.result.length - 1].length !== frames[frames.length - 1].length) {
                 remain = ret.remain;
@@ -454,20 +478,21 @@ export const useDataViewerStore = defineStore('text-viewer', () => {
         RxRemainHexdump,
         addStringMessage,
         addSegment,
+        reloadFrameBreak,
     }
 
-    const showText = ref(true);
-    const showHex = ref(false);
-    const showHexdump = ref(false);
-    const enableLineWrap = ref(true);
-    const showTimestamp = ref(true);
+    const showText = useStorage('showText', true);
+    const showHex = useStorage('showHex', false);
+    const showHexdump = useStorage('showHexdump', false);
+    const enableLineWrap = useStorage('lineWrap', false);
+    const showTimestamp = useStorage('showTimestamp', true);
     const showVirtualScroll = ref(true);
 
-    const RxHexdumpColor = ref("#f0f9eb");
+    const RxHexdumpColor = useStorage('RxHexdumpColor', "#f0f9eb");
     const RxTotalByteCount = ref(0);
     const RxByteCount = ref(0);
 
-    const TxHexdumpColor = ref("#ecf4ff");
+    const TxHexdumpColor = useStorage('TxHexdumpColor', "#ecf4ff");
     const TxTotalByteCount = ref(0);
     const TxByteCount = ref(0);
 
@@ -490,8 +515,8 @@ export const useDataViewerStore = defineStore('text-viewer', () => {
     const forceToBottom = ref(true);
     const filterChanged = ref(false);
 
-    const textPrefixValue = ref("")
-    const textSuffixValue = ref("\\r\\n")
+    const textPrefixValue = useStorage('sendFramePrefix', "");
+    const textSuffixValue = useStorage('sendFrameSuffix', "\\r\\n");
     const hasAddedText = computed(() => {
         return textPrefixValue.value.length > 0 || textSuffixValue.value.length > 0;
     });
@@ -504,7 +529,7 @@ export const useDataViewerStore = defineStore('text-viewer', () => {
         stop_bits: 1,
     });
 
-    const filterValue = ref("");
+    const filterValue = useStorage('frameFilterValue', '');
     const computedFilterValue = computed(() => {
         return unescapeString(filterValue.value);
     })
@@ -522,7 +547,7 @@ export const useDataViewerStore = defineStore('text-viewer', () => {
 
     /* actual data shown on screen */
     const dataFiltered: ShallowReactive<IDataBuf[]> = shallowReactive([]);
-    const dataFilterAutoUpdate = ref(true);
+    const dataFilterAutoUpdate = useStorage("autoUpdate", true);
     const acceptIncomingData = ref(false);
 
     // let frameBreakReady = false;
@@ -534,7 +559,7 @@ export const useDataViewerStore = defineStore('text-viewer', () => {
     }, {debounce: 300});
 
     let batchDataUpdateIntervalID: number = -1;
-    const batchUpdateTime = ref(80); /* ms */
+    const batchUpdateTime = useStorage('updateInterval', 80); /* ms */
     let batchStartIndex: number = 0;
 
     watch(batchUpdateTime, () => {
@@ -755,10 +780,10 @@ export const useDataViewerStore = defineStore('text-viewer', () => {
 
 
     const enableLoopSend = ref(false);
-    const loopSendFreq = ref(1000);
+    const loopSendFreq = useStorage('loopSendInterval', 1000);
     let loopSendIntervalID: number = -1;
-    const uartInputTextBox = ref("");
-    const isSendTextFormat = ref(true);
+    const uartInputTextBox = useStorage('sendBox', "");
+    const isSendTextFormat = useStorage('sendBoxIsText', true);
     const isHexStringValid = ref(false);
 
     function loopSend() {
