@@ -1,11 +1,10 @@
 import type {ControlMsg, ServerMsg} from "@/api";
-
-declare const self: SharedWorkerGlobalScope;
-
+import {ControlEvent, ControlMsgType} from "@/api";
 import {WebsocketWrapper} from "@/composables/websocket/websocketWrapper";
 import {toClient, toClientCtrl, toServer} from "@/composables/broadcastChannelDef";
-import {ControlEvent, ControlMsgType} from "@/api";
 import {isDevMode} from "@/composables/buildMode";
+
+declare const self: SharedWorkerGlobalScope;
 
 const websocket = new WebsocketWrapper();
 let host = "";
@@ -30,6 +29,8 @@ self.onconnect = function(event) {
                 host = e.data.data;
                 websocket.init(host, msgBroadcast, ctrlBroadcast);
             }
+        } else if (e.data.type === ControlMsgType.WS_GET_STATE) {
+            websocket.getSocketStatus();
         }
     };
     const msg: ControlMsg = {

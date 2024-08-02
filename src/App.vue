@@ -50,6 +50,7 @@ onMounted(() => {
   }
   websocketService = getWebsocketService();
   websocketService.init(host, onServerMsg, onClientCtrl);
+  websocketService.getSocketStatus();
   changeFavicon();
 
   useSystemModule();
