@@ -7,11 +7,11 @@
         transition="none"
         width="300"
     >
-      <div v-if="!store.configPanelShow" class="h-[40vh] overflow-auto">
+      <div v-if="!store.winLeft.show" class="h-[40vh] overflow-auto">
         <text-data-config></text-data-config>
       </div>
       <template #reference>
-        <el-link v-show="!store.configPanelShow" type="primary">
+        <el-link v-show="!store.winLeft.show" type="primary">
           <InlineSvg name="arrow_drop_down" class="h-6 mb-1 px-2"></InlineSvg>
         </el-link>
       </template>

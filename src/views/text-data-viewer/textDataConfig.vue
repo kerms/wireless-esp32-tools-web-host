@@ -4,7 +4,7 @@
       <el-tab-pane label="接口" name="first" class="min-h-80">
 
         <div class="flex flex-col gap-2">
-          <el-form :size="store.configPanelShow ? '' : 'small'">
+          <el-form :size="store.winLeft.show ? '' : 'small'">
             <el-form-item
                 label="波特率"
                 class="mb-2"
@@ -179,10 +179,11 @@
                     <td :class="item.draggable ? 'sort-target' : ''">{{ item.name }}</td>
                     <td>
                       <div v-if="item.type === 'number'">
-                        <el-input-number v-model="item.ref" :min="item.min || 0" size="small" style="width: 100px"/>
+                        <el-input-number v-if="item.name === '超时(ms)'" v-model="store.frameBreakDelay" :min="item.min || 0" size="small" style="width: 100px"/>
+                        <el-input-number v-else v-model="store.frameBreakSize" :min="item.min || 0" size="small" style="width: 100px"/>
                       </div>
                       <div v-else>
-                        <el-input class="break-input" v-model="item.ref" placeholder="文本;支持\n\x" size="small"
+                        <el-input class="break-input" v-model="store.frameBreakSequence" placeholder="文本;支持\n\x" size="small"
                                   style="width: 100px">
                           <template #prepend>
                             <el-button size="small" @click="store.frameBreakAfterSequence = false">

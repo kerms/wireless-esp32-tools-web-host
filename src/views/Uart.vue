@@ -1,6 +1,6 @@
 <template>
   <div class="button-m-0 messages-container flex flex-grow overflow-hidden" :class="{'flex-col': store.winLayoutMode ==='col'}">
-    <div v-show="store.configPanelShow" ref="win1Ref" class="bg-gray-50 flex-shrink-0 overflow-auto"
+    <div v-show="store.winLeft.show" ref="win1Ref" class="bg-gray-50 flex-shrink-0 overflow-auto"
          :class="{
       'max-w-60': store.winLayoutMode==='row', 'xl:max-w-80': store.winLayoutMode==='row',
       'min-w-60': store.winLayoutMode==='row', 'xl:min-w-80': store.winLayoutMode==='row'
@@ -9,7 +9,7 @@
       <text-data-config></text-data-config>
     </div>
 
-    <div v-show="store.configPanelShow && (winDataView.show || store.winRight.show)" ref="firstWinResizeRef"></div>
+    <div v-show="store.winLeft.show && (winDataView.show || store.winRight.show)" ref="firstWinResizeRef"></div>
 
     <div v-show="winDataView.show" class="flex flex-col flex-grow overflow-hidden p-2">
       <textDataViewer></textDataViewer>
@@ -40,7 +40,7 @@
           </div>
           <el-checkbox label="自适应" v-model="store.winAutoLayout" border size="small"
                        :disabled="store.winLayoutMode==='col'"/>
-          <el-checkbox label="设置窗" v-model="store.configPanelShow" border size="small" :disabled="store.winAutoLayout"/>
+          <el-checkbox label="设置窗" v-model="store.winLeft.show" border size="small" :disabled="store.winAutoLayout"/>
           <el-checkbox label="数据窗" v-model="winDataView.show" border size="small" :disabled="store.winAutoLayout"/>
           <el-checkbox label="快捷窗" v-model="store.winRight.show" border size="small" :disabled="store.winAutoLayout"/>
         </div>
@@ -298,7 +298,7 @@ watch([
   () => store.winAutoLayout
 ], (value) => {
   if (store.winAutoLayout) {
-    store.configPanelShow = !value[0];
+    store.winLeft.show = !value[0];
     win1Ref.value.style.minWidth = "";
     win1Ref.value.style.maxWidth = "";
     win2Ref.value.style.minWidth = "";

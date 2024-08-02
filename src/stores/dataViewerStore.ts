@@ -8,7 +8,7 @@ import {
     watch,
 } from "vue";
 import {AnsiUp} from 'ansi_up'
-import {debouncedWatch, useStorage} from "@vueuse/core";
+import {debouncedWatch} from "@vueuse/core";
 import {type IUartConfig, uart_send_msg} from "@/api/apiUart";
 import {isDevMode} from "@/composables/buildMode";
 import {useUartStore} from "@/stores/useUartStore";
@@ -240,6 +240,44 @@ function generateBaudArr(results: { baud: number; }[]) {
     });
 }
 
+export interface ISettings {
+    testNumber: number;
+    configTab: string;
+    showText: boolean;
+    showHex: boolean;
+    showHexdump: boolean;
+    showTimestamp: boolean;
+    lineWrap: boolean;
+    RxHexdumpColor: string;
+    TxHexdumpColor: string;
+    frameBreakSequence: string;
+    frameBreakAfterSequence: boolean;
+    frameBreakDelay: number;
+    frameBreakSize: number;
+    frameBreak: any[]; // Specify more precise types
+    decodeANSI: boolean;
+    frameFilterValue: string;
+    autoUpdate: boolean;
+    updateInterval: number;
+    sendFramePrefix: string;
+    sendFrameSuffix: string;
+    loopSendInterval: number;
+    sendBoxIsText: boolean;
+    sendBox: string;
+    winLeft: any;
+    winRight: any;
+    winAutoLayout: boolean;
+    winLayoutMode: string;
+    macroButtons: macroItem[];
+    ipChangeAlert: boolean;
+}
+
+interface macroItem {
+    value: string;
+    label: string;
+    id: number;
+}
+
 export const useDataViewerStore = defineStore('text-viewer', () => {
     const uartStore = useUartStore()
 
@@ -270,10 +308,8 @@ export const useDataViewerStore = defineStore('text-viewer', () => {
     generateBaudArr(uartBaudList);
 
     /* public value */
-    const configPanelTab = useStorage("configTab" ,"second");
-    const configPanelShow = ref(true);
-    const quickAccessPanelShow = ref(true);
-    const enableAnsiDecode = useStorage("decodeANSI", true);
+    const configPanelTab = ref("second");
+    const enableAnsiDecode = ref(true);
 
 
     /*
@@ -283,12 +319,12 @@ export const useDataViewerStore = defineStore('text-viewer', () => {
     let RxSegment: Uint8Array = new Uint8Array(0);
     const RxRemainHexdump = ref("");
 
-    const frameBreakSequence = useStorage("frameBreakSequence", "\\n");
-    const frameBreakAfterSequence = useStorage("frameBreakAfterSequence", true);
+    const frameBreakSequence = ref("\\n");
+    const frameBreakAfterSequence = ref(true);
     const frameBreakSequenceNormalized = computed(() => {
         return unescapeString(frameBreakSequence.value);
     });
-    const frameBreakDelay = useStorage("frameBreakDelay", 0);
+    const frameBreakDelay = ref(0);
     let frameBreakDelayTimeoutID: number = -1;
 
     function frameBreakFlush() {
@@ -326,27 +362,24 @@ export const useDataViewerStore = defineStore('text-viewer', () => {
 
 
 
-    const frameBreakSize = useStorage("frameBreakSize", 0);
-    const frameBreakRules = useStorage("breakRules", [{
-        ref: frameBreakDelay,
+    const frameBreakSize = ref(0);
+    const frameBreakRules = ref([{
         name: '超时(ms)',
         type: 'number',
         min: -1,
         draggable: false,
         transformData: breakDelay,
     }, {
-        ref: frameBreakSequence,
         name: '匹配',
         type: 'text',
         draggable: true,
-        transformData: breakDelay,
+        transformData: breakSequence,
     }, {
-        ref: frameBreakSize,
         name: '字节(B)',
         type: 'number',
         min: 0,
         draggable: true,
-        transformData: breakDelay,
+        transformData: breakSize,
     },])
 
     function breakDelay(inputArray: Uint8Array[]) {
@@ -406,18 +439,13 @@ export const useDataViewerStore = defineStore('text-viewer', () => {
         for (let i = 0; i < frameBreakRules.value.length; i++) {
             if (frameBreakRules.value[i].name === "超时(ms)") {
                 frameBreakRules.value[i].transformData = breakDelay;
-                frameBreakRules.value[i].ref = frameBreakDelay;
             } else if (frameBreakRules.value[i].name === "匹配") {
                 frameBreakRules.value[i].transformData = breakSequence;
-                frameBreakRules.value[i].ref = frameBreakSequence;
             } else {
                 frameBreakRules.value[i].transformData = breakSize;
-                frameBreakRules.value[i].ref = frameBreakSize;
             }
         }
     }
-
-    reloadFrameBreak();
 
     function addStringMessage(input: string, isRX: boolean, doSend: boolean = false) {
         const unescaped = unescapeString(input);
@@ -478,21 +506,20 @@ export const useDataViewerStore = defineStore('text-viewer', () => {
         RxRemainHexdump,
         addStringMessage,
         addSegment,
-        reloadFrameBreak,
     }
 
-    const showText = useStorage('showText', true);
-    const showHex = useStorage('showHex', false);
-    const showHexdump = useStorage('showHexdump', false);
-    const enableLineWrap = useStorage('lineWrap', false);
-    const showTimestamp = useStorage('showTimestamp', true);
+    const showText = ref(true);
+    const showHex = ref(false);
+    const showHexdump = ref(false);
+    const enableLineWrap = ref(false);
+    const showTimestamp = ref(true);
     const showVirtualScroll = ref(true);
 
-    const RxHexdumpColor = useStorage('RxHexdumpColor', "#f0f9eb");
+    const RxHexdumpColor = ref("#f0f9eb");
     const RxTotalByteCount = ref(0);
     const RxByteCount = ref(0);
 
-    const TxHexdumpColor = useStorage('TxHexdumpColor', "#ecf4ff");
+    const TxHexdumpColor = ref("#ecf4ff");
     const TxTotalByteCount = ref(0);
     const TxByteCount = ref(0);
 
@@ -515,8 +542,8 @@ export const useDataViewerStore = defineStore('text-viewer', () => {
     const forceToBottom = ref(true);
     const filterChanged = ref(false);
 
-    const textPrefixValue = useStorage('sendFramePrefix', "");
-    const textSuffixValue = useStorage('sendFrameSuffix', "\\r\\n");
+    const textPrefixValue = ref("");
+    const textSuffixValue = ref("\\r\\n");
     const hasAddedText = computed(() => {
         return textPrefixValue.value.length > 0 || textSuffixValue.value.length > 0;
     });
@@ -529,7 +556,7 @@ export const useDataViewerStore = defineStore('text-viewer', () => {
         stop_bits: 1,
     });
 
-    const filterValue = useStorage('frameFilterValue', '');
+    const filterValue = ref('');
     const computedFilterValue = computed(() => {
         return unescapeString(filterValue.value);
     })
@@ -547,7 +574,7 @@ export const useDataViewerStore = defineStore('text-viewer', () => {
 
     /* actual data shown on screen */
     const dataFiltered: ShallowReactive<IDataBuf[]> = shallowReactive([]);
-    const dataFilterAutoUpdate = useStorage("autoUpdate", true);
+    const dataFilterAutoUpdate = ref(true);
     const acceptIncomingData = ref(false);
 
     // let frameBreakReady = false;
@@ -559,7 +586,7 @@ export const useDataViewerStore = defineStore('text-viewer', () => {
     }, {debounce: 300});
 
     let batchDataUpdateIntervalID: number = -1;
-    const batchUpdateTime = useStorage('updateInterval', 80); /* ms */
+    const batchUpdateTime = ref(80); /* ms */
     let batchStartIndex: number = 0;
 
     watch(batchUpdateTime, () => {
@@ -780,10 +807,10 @@ export const useDataViewerStore = defineStore('text-viewer', () => {
 
 
     const enableLoopSend = ref(false);
-    const loopSendFreq = useStorage('loopSendInterval', 1000);
+    const loopSendFreq = ref(1000);
     let loopSendIntervalID: number = -1;
-    const uartInputTextBox = useStorage('sendBox', "");
-    const isSendTextFormat = useStorage('sendBoxIsText', true);
+    const sendBox = ref("");
+    const sendBoxIsText = ref(true);
     const isHexStringValid = ref(false);
 
     function loopSend() {
@@ -791,14 +818,14 @@ export const useDataViewerStore = defineStore('text-viewer', () => {
             enableLoopSend.value = false;
         }
 
-        if (isSendTextFormat.value) {
-            addString(uartInputTextBox.value, false, true);
+        if (sendBoxIsText.value) {
+            addString(sendBox.value, false, true);
         } else {
             if (!isHexStringValid.value) {
                 addString("HEX格式错误", false, false, 1);
-                addHexString(uartInputTextBox.value, false, false, 1);
+                addHexString(sendBox.value, false, false, 1);
             } else {
-                addHexString(uartInputTextBox.value, false, true);
+                addHexString(sendBox.value, false, true);
             }
         }
     }
@@ -829,8 +856,8 @@ export const useDataViewerStore = defineStore('text-viewer', () => {
         enableLoopSend,
         loopSendFreq,
         loopSendIntervalID,
-        isSendTextFormat,
-        uartInputTextBox,
+        isSendTextFormat: sendBoxIsText,
+        uartInputTextBox: sendBox,
         isHexStringValid,
     }
 
@@ -842,7 +869,7 @@ export const useDataViewerStore = defineStore('text-viewer', () => {
     }
 
     /* window layout */
-    const winLeft = useStorage('winLeft',{
+    const winLeft = ref({
         show: true,
         width: "100px",
         height: "100px",
@@ -850,15 +877,15 @@ export const useDataViewerStore = defineStore('text-viewer', () => {
     });
 
     /* window layout */
-    const winRight = useStorage('winRight',{
+    const winRight = ref({
         show: true,
         width: "100px",
         height: "100px",
         borderSize: 3,
     });
 
-    const winAutoLayout = useStorage('winAuto', true);
-    const winLayoutMode = useStorage('winLayout', 'row');
+    const winAutoLayout = ref(true);
+    const winLayoutMode = ref('row');
 
 
     const winLayoutRet = {
@@ -866,6 +893,204 @@ export const useDataViewerStore = defineStore('text-viewer', () => {
         winRight,
         winAutoLayout,
         winLayoutMode,
+    }
+
+    /* macro buttons */
+
+    const macroData: Ref<macroItem[]> = ref([
+        {
+            value: 'AT',
+            label: '测试AT',
+            id: 1,
+        },{
+            value: 'AT+CSQ',
+            label: '询信号强度',
+            id: 2,
+        },{
+            value: 'AT+CGSN',
+            label: '询序列号',
+            id: 3,
+        }, {
+            value: 'AT+CGMR',
+            label: '询固件版本',
+            id: 4,
+        }, {
+            value: 'AT+CMEE',
+            label: '询终端报错',
+            id: 5,
+        }, {
+            value: 'AT+NRB',
+            label: '重启',
+            id: 6,
+        }, {
+            value: 'AT+CGATT',
+            label: '询网络激活状态',
+            id: 7,
+        }, {
+            value: 'AT+CEREG',
+            label: '询网络注册状态',
+            id: 8,
+        }, {
+            value: 'AT+CSCON',
+            label: '询网络连接状态',
+            id: 9,
+        }
+    ]);
+    const macroId = ref(10);
+
+    const macroDataRet = {
+        macroData,
+        macroId,
+    }
+
+
+    const autoSaveSettings = ref(true);
+    /* save to localStorage */
+    const testNumber = ref(0);
+    const ipChangeAlert = ref(true);
+
+    const settings: Ref<ISettings> = ref({
+        testNumber,
+        macroButtons: macroData,
+
+        configTab: configPanelTab,
+        showHex,
+        showText,
+        showHexdump,
+        showTimestamp,
+        lineWrap: enableLineWrap,
+        RxHexdumpColor,
+        TxHexdumpColor,
+
+        frameBreak: frameBreakRules,
+        frameBreakSequence,
+        frameBreakSize,
+        frameBreakDelay,
+        frameBreakAfterSequence,
+        frameFilterValue: filterValue,
+        decodeANSI: enableAnsiDecode,
+        autoUpdate: dataFilterAutoUpdate,
+        updateInterval: batchUpdateTime,
+        sendFramePrefix: textPrefixValue,
+        sendFrameSuffix: textSuffixValue,
+        loopSendInterval: loopSendFreq,
+        sendBoxIsText,
+        sendBox,
+        winRight,
+        winLeft,
+        winAutoLayout,
+        winLayoutMode,
+        ipChangeAlert,
+    });
+
+    const settingsName = "uart-settings";
+
+    watch(() => settings, () => {
+        if (autoSaveSettings.value) {
+            localStorage.setItem(settingsName, JSON.stringify(settings.value));
+        }
+    }, {deep: true});
+
+    function loadSettings(settingsData: string = "") {
+        let data: string | null = settingsData;
+        if (settingsData === "") {
+            data = localStorage.getItem(settingsName);
+        }
+        if (data) {
+            // Assuming the stored data is a JSON string
+            const parsedData = JSON.parse(data);
+            if (parsedData.macroButtons !== undefined) {
+                macroData.value = parsedData.macroButtons;
+            }
+            if (parsedData.configTab !== undefined) {
+                configPanelTab.value = parsedData.configTab;
+            }
+            if (parsedData.showText !== undefined) {
+                showText.value = parsedData.showText;
+            }
+            if (parsedData.showHex !== undefined) {
+                showHex.value = parsedData.showHex;
+            }
+            if (parsedData.showHexdump !== undefined) {
+                showHexdump.value = parsedData.showHexdump;
+            }
+            if (parsedData.showTimestamp !== undefined) {
+                showTimestamp.value = parsedData.showTimestamp;
+            }
+            if (parsedData.lineWrap !== undefined) {
+                enableLineWrap.value = parsedData.lineWrap;
+            }
+            if (parsedData.RxHexdumpColor !== undefined) {
+                RxHexdumpColor.value = parsedData.RxHexdumpColor;
+            }
+            if (parsedData.TxHexdumpColor !== undefined) {
+                TxHexdumpColor.value = parsedData.TxHexdumpColor;
+            }
+            if (parsedData.frameBreakSequence !== undefined) {
+                frameBreakSequence.value = parsedData.frameBreakSequence;
+            }
+            if (parsedData.frameBreakAfterSequence !== undefined) {
+                frameBreakAfterSequence.value = parsedData.frameBreakAfterSequence;
+            }
+            if (parsedData.frameBreakDelay !== undefined) {
+                frameBreakDelay.value = parsedData.frameBreakDelay;
+            }
+            if (parsedData.frameBreakSize !== undefined) {
+                frameBreakSize.value = parsedData.frameBreakSize;
+            }
+
+            if (parsedData.frameBreak !== undefined) {
+                frameBreakRules.value = parsedData.frameBreak;
+            }
+            if (parsedData.decodeANSI !== undefined) {
+                enableAnsiDecode.value = parsedData.decodeANSI;
+            }
+            if (parsedData.frameFilterValue !== undefined) {
+                filterValue.value = parsedData.frameFilterValue;
+            }
+            if (parsedData.autoUpdate !== undefined) {
+                dataFilterAutoUpdate.value = parsedData.autoUpdate;
+            }
+            if (parsedData.updateInterval !== undefined) {
+                batchUpdateTime.value = parsedData.updateInterval;
+            }
+
+            if (parsedData.sendFramePrefix !== undefined) {
+                textPrefixValue.value = parsedData.sendFramePrefix;
+            }
+            if (parsedData.sendFrameSuffix !== undefined) {
+                textSuffixValue.value = parsedData.sendFrameSuffix;
+            }
+
+            if (parsedData.loopSendInterval !== undefined) {
+                loopSendFreq.value = parsedData.loopSendInterval;
+            }
+            if (parsedData.sendBoxIsText !== undefined) {
+                sendBoxIsText.value = parsedData.sendBoxIsText;
+            }
+            if (parsedData.sendBox !== undefined) {
+                sendBox.value = parsedData.sendBox;
+            }
+
+            if (parsedData.winLeft !== undefined) {
+                winLeft.value = parsedData.winLeft;
+            }
+            if (parsedData.winRight !== undefined) {
+                winRight.value = parsedData.winRight;
+            }
+            if (parsedData.winAutoLayout !== undefined) {
+                winAutoLayout.value = parsedData.winAutoLayout;
+            }
+            if (parsedData.winLayoutMode !== undefined) {
+                winLayoutMode.value = parsedData.winLayoutMode;
+            }
+            if (parsedData.ipChangeAlert !== undefined) {
+                ipChangeAlert.value = parsedData.ipChangeAlert;
+            }
+
+            reloadFrameBreak();
+            macroId.value = macroData.value.reduce((max, item) => Math.max(max, item.id), 0) + 1;
+        }
     }
 
     return {
@@ -882,8 +1107,6 @@ export const useDataViewerStore = defineStore('text-viewer', () => {
         clearByteCount,
         dataBufLength,
         configPanelTab,
-        configPanelShow,
-        quickAccessPanelShow,
         dataFiltered,
         dataFilterAutoUpdate,
         filterValue,
@@ -921,5 +1144,12 @@ export const useDataViewerStore = defineStore('text-viewer', () => {
         setUartBaud,
         ...loopSendRet,
         ...winLayoutRet,
+        ...macroDataRet,
+
+        autoSaveSettings,
+        settings,
+        testNumber,
+        loadSettings,
+        ipChangeAlert,
     }
 });
