@@ -217,7 +217,7 @@ import InlineSvg from "@/components/InlineSvg.vue";
 import TextDataConfig from "@/views/text-data-viewer/textDataConfig.vue";
 import {debouncedWatch} from "@vueuse/core";
 import {globalNotify} from "@/composables/notification";
-import {translate} from "../../locales";
+import {translate} from "@/locales";
 
 const count = ref(0);
 const vuetifyVirtualScrollBarRef = ref(document.body);

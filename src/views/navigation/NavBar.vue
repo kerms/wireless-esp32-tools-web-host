@@ -21,7 +21,7 @@
 <!--      <a class="flex items-center text-sm text-blue-600 font-bold" href="/">主页6</a>-->
 
       <div class="flex pt-0.5 sm:pt-1 ml-4 text-xs items-center sm:hidden">
-        <router-link :to="route.fullPath">{{ route.meta.title }}</router-link>
+        <router-link :to="route.fullPath">{{ $route.meta.title }}</router-link>
       </div>
     </div>
 

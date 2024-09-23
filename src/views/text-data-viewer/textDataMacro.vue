@@ -69,7 +69,7 @@ import {VueDraggable} from "vue-draggable-plus";
 import {onMounted, ref} from "vue";
 import {globalNotify, globalNotifyRightSide} from "@/composables/notification";
 import {useDataViewerStore} from "@/stores/dataViewerStore";
-import {translate} from "../../locales";
+import {translate} from "@/locales";
 
 const editMode = ref(false);
 const draggableEnabled = ref(true);
