@@ -38,15 +38,24 @@
           <div class="custom-style flex justify-center">
             <el-segmented v-model="store.winLayoutMode" :options="layoutOptions" size="small"/>
           </div>
-          <el-checkbox label="自适应" v-model="store.winAutoLayout" border size="small"
-                       :disabled="store.winLayoutMode==='col'"/>
-          <el-checkbox label="设置窗" v-model="store.winLeft.show" border size="small" :disabled="store.winAutoLayout"/>
-          <el-checkbox label="数据窗" v-model="winDataView.show" border size="small" :disabled="store.winAutoLayout"/>
-          <el-checkbox label="快捷窗" v-model="store.winRight.show" border size="small" :disabled="store.winAutoLayout"/>
+          <el-checkbox v-model="store.winAutoLayout" border size="small"
+                       :disabled="store.winLayoutMode==='col'">
+            {{ $t('uart.responsive') }}
+          </el-checkbox>
+          <el-checkbox v-model="store.winLeft.show" border size="small" :disabled="store.winAutoLayout">
+            {{ $t("uart.configPannel") }}
+          </el-checkbox>
+          <el-checkbox v-model="winDataView.show" border size="small" :disabled="store.winAutoLayout">
+            {{ $t('uart.displayPannel') }}
+          </el-checkbox>
+          <el-checkbox v-model="store.winRight.show" border size="small" :disabled="store.winAutoLayout">
+            {{ $t('uart.macroPannel') }}
+          </el-checkbox>
         </div>
 
         <template #reference>
-          <el-button class="min-h-full" type="primary" :size="layoutConf.isMedium ? 'small' : 'default'">布局
+          <el-button class="min-h-full" type="primary" :size="layoutConf.isMedium ? 'small' : 'default'">
+            {{ $t('uart.layout') }}
           </el-button>
         </template>
       </el-popover>
@@ -56,7 +65,7 @@
 </template>
 
 <script setup lang="ts">
-import {onMounted, onUnmounted, reactive, type Ref, ref, type UnwrapRef, watch} from "vue";
+import {computed, onMounted, onUnmounted, reactive, type Ref, ref, type UnwrapRef, watch} from "vue";
 import {breakpointsTailwind, useBreakpoints} from '@vueuse/core'
 import {useDataViewerStore} from '@/stores/dataViewerStore';
 import * as api from '@/api';
@@ -83,6 +92,7 @@ import {isDevMode} from "@/composables/buildMode";
 import {useWsStore} from "@/stores/websocket";
 import {useUartStore} from "@/stores/useUartStore";
 import TextDataMacro from "@/views/text-data-viewer/textDataMacro.vue";
+import {translate} from "@/locales";
 
 const store = useDataViewerStore()
 const wsStore = useWsStore()
@@ -100,13 +110,13 @@ const layoutConf = reactive({
   isMedium: breakpoints.smaller("lg"),
 });
 
-const layoutOptions = [{
-  label: '横/行',
+const layoutOptions = computed(() => [{
+  label: translate("uart.landscape"),
   value: 'row'
 }, {
-  label: '竖/列',
+  label: translate("uart.portrait"),
   value: 'col'
-}]
+}]);
 
 interface WinProperty {
   show: boolean;

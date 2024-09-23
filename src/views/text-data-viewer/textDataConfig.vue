@@ -1,14 +1,14 @@
 <template>
   <div>
     <el-tabs v-model="store.configPanelTab" class="mx-2 custom-tabs fit">
-      <el-tab-pane label="接口" name="first" class="min-h-80">
-
+      <el-tab-pane name="first" class="min-h-80">
+        <template #label>{{ $t("uart.port") }}</template>
         <div class="flex flex-col gap-2">
           <el-form :size="store.winLeft.show ? '' : 'small'">
             <el-form-item
-                label="波特率"
                 class="mb-2"
             >
+              <template #label>{{ $t("uart.baudrate") }}</template>
               <div class="flex w-full">
                 <el-select v-model="store.uartBaud" :teleported="false" @change="onUartBaudChange">
                   <template #header>
@@ -16,17 +16,17 @@
                       <div class="flex gap-0">
                         <el-input-number
                             v-model="uartCustomBaud"
-                            placeholder="自定义波特率"
+                            :placeholder="translate('uart.customBaud')"
                             size="small"
                             :controls="false"
                             :min="110"
                             class="flex-grow"
                         ></el-input-number>
-                        <el-button size="small" @click="onUseCustomUartBaud">使用</el-button>
+                        <el-button size="small" @click="onUseCustomUartBaud">{{ $t('uart.use') }}</el-button>
                         <!--                      <el-button size="small" @click="onConfirm" class="ml-0">增加</el-button>-->
                       </div>
 
-                      <el-option-group label="常用">
+                      <el-option-group :label="translate('uart.commonlyUsed')">
                         <el-option
                             v-for="item in store.predefinedUartBaudFrequent"
                             :key="item.baud"
@@ -35,7 +35,7 @@
                         />
                       </el-option-group>
 
-                      <el-option-group label="其他">
+                      <el-option-group :label="translate('uart.other')">
                         <el-option
                             v-for="item in store.uartBaudList"
                             :key="item.baud"
@@ -48,9 +48,9 @@
                 </el-select>
               </div>
             </el-form-item>
-            <p class="text-xs">实际波特率:{{ store.uartBaudReal }}</p>
+            <p class="text-xs">{{ $t('uart.actual') }} {{ $t('uart.baudrate') }}:{{ store.uartBaudReal }}</p>
 
-            <el-form-item label="数据位" class="mb-2">
+            <el-form-item :label="translate('uart.dataBits')" class="mb-2">
               <el-select v-model="store.uartConfig.data_bits" :teleported="false"
                          placeholder="Select" @change="onUartConfigChange">
                 <el-option
@@ -62,7 +62,7 @@
               </el-select>
             </el-form-item>
 
-            <el-form-item label="校验位" class="mb-2">
+            <el-form-item :label="translate('uart.parity')" class="mb-2">
               <el-select v-model="store.uartConfig.parity" :teleported="false"
                          placeholder="Select" @change="onUartConfigChange">
                 <el-option
@@ -74,7 +74,7 @@
               </el-select>
             </el-form-item>
 
-            <el-form-item label="停止位">
+            <el-form-item :label="translate('uart.stopBits')">
               <el-select v-model="store.uartConfig.stop_bits" :teleported="false"
                          placeholder="Select" @change="onUartConfigChange">
                 <el-option
@@ -92,7 +92,7 @@
                            :disabled="wsStore.state !== ControlEvent.CONNECTED"
                            @click="store.acceptIncomingData = !store.acceptIncomingData"
                 >
-                  {{ store.acceptIncomingData ? "停止数据收发" : "开始数据收发" }}
+                  {{ store.acceptIncomingData ? $t("uart.stopCommunication") : $t("uart.startCommunication") }}
                 </el-button>
               </div>
             </el-form-item>
@@ -102,39 +102,40 @@
 
       </el-tab-pane>
       <!--  /////////////////////////////////////////////////////////////////    -->
-      <el-tab-pane label="显示框" name="second">
+      <el-tab-pane name="second">
+        <template #label>{{ $t("uart.displayPannel") }}</template>
         <div class="flex flex-col">
           <el-collapse v-model="collapseActiveName">
             <el-collapse-item name="1">
               <template #title>
-                显示选项
+                {{ $t('uart.displayOptions') }}
               </template>
               <template #default>
                 <div class="flex flex-col gap-2">
                   <div class="flex flex-col">
-                    <el-checkbox border v-model="store.showText" label="显示文本"/>
+                    <el-checkbox border v-model="store.showText" :label="translate('uart.text')"/>
                   </div>
                   <div class="flex flex-col">
-                    <el-checkbox border v-model="store.showHex" label="显示HEX"/>
+                    <el-checkbox border v-model="store.showHex" label="HEX"/>
                   </div>
                   <div class="flex flex-col">
-                    <el-checkbox border v-model="store.showHexdump" label="显示HEXDUMP"/>
+                    <el-checkbox border v-model="store.showHexdump" label="HEXDUMP"/>
                   </div>
                   <div class="flex flex-col">
-                    <el-checkbox border v-model="store.showTimestamp">显示时间戳</el-checkbox>
+                    <el-checkbox border v-model="store.showTimestamp" :label="translate('uart.timestamp')"/>
                   </div>
                   <div class="flex flex-col">
-                    <el-checkbox border v-model="store.enableLineWrap" label="启用换行"/>
+                    <el-checkbox border v-model="store.enableLineWrap" :label="translate('uart.lineWrap')"/>
                   </div>
 
                   <el-tag type="success">
-                    <el-text type="success">RX HEXDUMP高亮选色</el-text>
+                    <el-text type="success">RX HEXDUMP {{ $t("uart.highlight") }}</el-text>
                     <el-color-picker v-model="store.RxHexdumpColor" show-alpha :predefine="store.predefineColors"
                                      size="small"/>
                   </el-tag>
 
                   <el-tag type="primary">
-                    <el-text type="primary">TX HEXDUMP高亮选色</el-text>
+                    <el-text type="primary">TX HEXDUMP {{ $t("uart.highlight") }}</el-text>
                     <el-color-picker v-model="store.TxHexdumpColor" show-alpha :predefine="store.predefineColors"
                                      size="small"/>
                   </el-tag>
@@ -142,33 +143,26 @@
               </template>
             </el-collapse-item>
 
-            <el-collapse-item name="2">
-              <template #title>
-                断帧策略
-              </template>
+            <el-collapse-item name="2" :title="translate('uart.frameBreakStrategy')">
               <VueDraggable v-model="store.frameBreakRules" target="tbody" handle=".sort-target"
                             :animation="150"
                             :on-move="checkMove">
                 <table class="w-full bg-white">
                   <thead>
                   <tr class="text-sm h-7">
-                    <th>优先级</th>
+                    <th>{{ $t('uart.priority') }}</th>
                     <th>
                       <div class="flex justify-center">
-                        规则
+                        {{ translate('uart.rule' as TranslationKeys) }}
                         <el-tooltip placement="top" effect="light">
                           <template #content>
-                            <p>超时=-1： 禁用超时断帧</p>
-                            <p>超时=0： 当机立断，收到任何数据都视为完整数据</p>
-                            <p>匹配断后：典型\n的场景</p>
-                            <p>匹配断前：用于有特殊帧头的场景</p>
-                            <p>固定字节断帧：传输大量数据，比如可以每隔1024字节断帧，方便查看数据</p>
+                            <div v-html="translate('uart.ruleTips')"></div>
                           </template>
                           <InlineSvg name="help" class="w-4 text-gray-500 cursor-help"></InlineSvg>
                         </el-tooltip>
                       </div>
                     </th>
-                    <th>值</th>
+                    <th>{{ translate('uart.value' as TranslationKeys) }}</th>
                   </tr>
                   </thead>
                   <tbody class="text-xs text-center">
@@ -176,20 +170,22 @@
                     <td :class="item.draggable ? 'sort-target' : ''">
                       {{ item.draggable ? index : 'NaN' }}
                     </td>
-                    <td :class="item.draggable ? 'sort-target' : ''">{{ item.name }}</td>
+                    <td :class="item.draggable ? 'sort-target' : ''">
+                      {{ translate("uart." + item.name) }}
+                    </td>
                     <td>
                       <div v-if="item.type === 'number'">
-                        <el-input-number v-if="item.name === '超时(ms)'" v-model="store.frameBreakDelay" :min="item.min || 0" size="small" style="width: 100px"/>
+                        <el-input-number v-if="item.name === 'timeout'" v-model="store.frameBreakDelay" :min="item.min || 0" size="small" style="width: 100px"/>
                         <el-input-number v-else v-model="store.frameBreakSize" :min="item.min || 0" size="small" style="width: 100px"/>
                       </div>
                       <div v-else>
-                        <el-input class="break-input" v-model="store.frameBreakSequence" placeholder="文本;支持\n\x" size="small"
+                        <el-input class="break-input" v-model="store.frameBreakSequence" :placeholder="translate('uart.textAndEscape')" size="small"
                                   style="width: 100px">
                           <template #prepend>
                             <el-button size="small" @click="store.frameBreakAfterSequence = false">
                               <span
                                   :class="store.frameBreakAfterSequence ? 'text-gray-400' : 'text-blue-400 font-bold'">
-                              断
+                              {{ translate("uart.begin") }}
                               </span>
                             </el-button>
                           </template>
@@ -197,7 +193,7 @@
                             <el-button size="small" @click="store.frameBreakAfterSequence = true">
                               <span
                                   :class="store.frameBreakAfterSequence ? 'text-blue-400 font-bold' : 'text-gray-300'">
-                              断
+                              {{ translate("uart.end") }}
                               </span>
                             </el-button>
                           </template>
@@ -210,10 +206,7 @@
               </VueDraggable>
             </el-collapse-item>
 
-            <el-collapse-item name="3">
-              <template #title>
-                其他
-              </template>
+            <el-collapse-item name="3" :title="translate('uart.other')">
               <template #default>
                 <div class="flex flex-col gap-2">
                   <el-tooltip
@@ -222,30 +215,24 @@
                       placement="right-start"
                   >
                     <template #content>
-                      <p>ANSI转义码对终端和文本有很多作用，比如改变文本颜色等。</p>
-                      <p>
-                        简单了解->
-                        <el-link target="_blank" href="https://zhuanlan.zhihu.com/p/390666800">
-                          https://zhuanlan.zhihu.com/p/390666800
-                        </el-link>
-                      </p>
+                      <div v-html="translate('uart.ansiTooltips')"></div>
                     </template>
-                    <el-checkbox border v-model="store.enableAnsiDecode">解析ANSI转义码</el-checkbox>
+                    <el-checkbox border v-model="store.enableAnsiDecode">{{ translate('uart.decodeAnsiEscapeCodes') }}</el-checkbox>
                   </el-tooltip>
-                  <el-input v-model="store.filterValue" placeholder="文本;支持\n\x" clearable>
+                  <el-input v-model="store.filterValue" :placeholder="translate('uart.textAndEscape')" clearable>
                     <template #prepend>
-                      过滤
+                      {{ translate("uart.filter") }}
                     </template>
                   </el-input>
 
                   <div class="border rounded flex flex-col">
 
-                    <el-checkbox border v-model="store.dataFilterAutoUpdate">新数据自动刷新</el-checkbox>
+                    <el-checkbox border v-model="store.dataFilterAutoUpdate">{{ translate('uart.autoUpdateNewData') }}</el-checkbox>
 
-                    <el-tooltip content="提高间隔可减少CPU资源的使用" placement="right" effect="light"
+                    <el-tooltip :content="translate('uart.updateFrequencyTooltip')" placement="right" effect="light"
                                 :show-after="500">
                       <div class="flex gap-4 p-2">
-                        <el-text>数据显示刷新间隔(ms)</el-text>
+                        <el-text>{{ translate('uart.updateFrequency') }}</el-text>
                         <el-input-number
                             :step="10"
                             :min="10"
@@ -300,34 +287,36 @@
       </el-tab-pane>
 
       <!--    /////////////////////////////////////////////////////////////  -->
-      <el-tab-pane label="发送" name="third">
+      <el-tab-pane :label="translate('uart.send')" name="third">
+        <template #label>{{ $t("uart.send") }}</template>
         <div class="flex flex-col gap-2">
-          <el-input v-model="store.textPrefixValue" placeholder="支持\n\x" clearable>
+          <el-input v-model="store.textPrefixValue" :placeholder="translate('uart.textAndEscape')" clearable>
             <template #prepend>
-              {{ `添加帧头►` }}
+              {{ translate('uart.addHeader') }}►
             </template>
           </el-input>
-          <el-input v-model="store.textSuffixValue" placeholder="支持\n\x" clearable>
+          <el-input v-model="store.textSuffixValue" :placeholder="translate('uart.textAndEscape')" clearable>
             <template #append>
-              ◄添加帧尾
+              ◄{{ translate('uart.addFooter') }}
             </template>
           </el-input>
         </div>
       </el-tab-pane>
 
 
-      <el-tab-pane label="透传" name="fourth" class="min-h-80">
+      <el-tab-pane :label="translate('uart.proxy')" name="fourth" class="min-h-80">
+        <template #label>{{ $t("uart.passthrough") }}</template>
         <div class="flex flex-col gap-2">
           <div class="border rounded bg-white p-2">
-            <span class="border-r px-2">TCP服务器端口</span>
+            <span class="border-r px-2">TCP {{ translate('uart.serverPort') }}</span>
             <span class="px-2 cursor-not-allowed">1346</span>
           </div>
           <div>
-            <p><el-button @click="refreshTCPClientList" size="small" type="primary" :plain="true">刷新</el-button> 已连接的客户端：</p>
+            <p><el-button @click="refreshTCPClientList" size="small" type="primary" :plain="true">{{ translate('uart.refresh') }}</el-button> {{ translate('uart.connectedClient') }}</p>
 
-            <el-table :data="dfStore.instanceList.filter((item) => (item.port_info as ISocketInfo).local_port === 1346)" empty-text="无客户端连接">
+            <el-table :data="dfStore.instanceList.filter((item) => (item.port_info as ISocketInfo).local_port === 1346)" :empty-text="translate('uart.noClientConnected')">
               <el-table-column label="IP" prop="port_info.foreign_ip" />
-              <el-table-column label="端口" prop="port_info.foreign_port"/>
+              <el-table-column :label="translate('uart.port')" prop="port_info.foreign_port"/>
             </el-table>
           </div>
         </div>
@@ -338,7 +327,7 @@
 
 <script setup lang="ts">
 import {VueDraggable} from 'vue-draggable-plus'
-import {ref} from "vue";
+import {computed, ref} from "vue";
 import {useDataViewerStore} from "@/stores/dataViewerStore";
 import {useWsStore} from "@/stores/websocket";
 import {globalNotify} from "@/composables/notification";
@@ -349,6 +338,7 @@ import {useDataFlowStore} from "@/stores/useDataFlowStore";
 import {wt_data_flow_get_instance_list, type ISocketInfo} from "@/api/apiDataFlow";
 import {uart_set_baud, uart_set_config} from "@/api/apiUart";
 import {useUartStore} from "@/stores/useUartStore";
+import {translate, type TranslationKeys} from "@/locales";
 
 const store = useDataViewerStore()
 const uartStore = useUartStore()
@@ -375,18 +365,18 @@ const uartDataBitsOptions = [
   }
 ]
 
-const uartParityOptions = [
+const uartParityOptions = computed(() => [
   {
     key: 0,
-    label: "无（none）",
+    label: translate("uart.parityNone"),
   }, {
     key: 1,
-    label: "奇（odd）",
+    label: translate("uart.parityOdd"),
   }, {
     key: 2,
-    label: "偶（even）",
+    label: translate("uart.parityEven"),
   }
-]
+]);
 
 
 const uartStopBitsOptions = [

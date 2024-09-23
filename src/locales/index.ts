@@ -7,8 +7,8 @@ type NestedKeyOf<ObjectType extends object> = {
         : `${Key}`
 }[keyof ObjectType & (string | number)];
 
-type TranslationKeys = NestedKeyOf<typeof zh>;
+export type TranslationKeys = NestedKeyOf<typeof zh>;
 
-export function translate<K extends TranslationKeys>(key: K | string): string {
-    return i18n.global.t(key.toLowerCase());
+export function translate(key: TranslationKeys | string): string {
+    return i18n.global.t(key);
 }

@@ -1,25 +1,27 @@
 <template>
   <div class="flex items-center mb-2 flex-wrap gap-2">
-    <el-button type="primary" @click="importSettings">导入</el-button>
-    <el-button type="warning" @click="exportSettings">导出</el-button>
+    <el-button type="primary" @click="importSettings">{{ translate('uart.import') }}</el-button>
+    <el-button type="warning" @click="exportSettings">{{ translate('uart.export') }}</el-button>
 
     <el-tooltip
         effect="light"
         placement="top"
+        :show-after="500"
     >
       <template #content>
-        <p>刷新页面后生效</p>
+        <p>{{ translate('uart.resetTooltip') }}</p>
       </template>
-      <el-button type="info" @click="resetSettings">重置</el-button>
+      <el-button type="info" @click="resetSettings">{{ translate('uart.reset') }}</el-button>
     </el-tooltip>
     <el-tooltip
         effect="light"
         placement="top"
+        :show-after="500"
     >
       <template #content>
-        <p>若存在多个页面，会相互覆盖</p>
+        <p>{{ translate('uart.saveToLocalTooltip') }}</p>
       </template>
-      <el-checkbox border v-model="store.autoSaveSettings">保存至本地</el-checkbox>
+      <el-checkbox border v-model="store.autoSaveSettings">{{ translate('uart.saveToLocal') }}</el-checkbox>
     </el-tooltip>
   </div>
 
@@ -27,17 +29,17 @@
     <el-button type="primary" @click="() => {
     store.macroData.push({
       value: '',
-      label: '发送',
+      label: translate('uart.send'),
       id: store.macroId,
     })
     store.macroId++;
-  }">添加
+  }">{{ translate('uart.add') }}
     </el-button>
-    <el-checkbox v-model="editMode" border>编辑</el-checkbox>
-    <el-checkbox v-model="draggableEnabled" border>拖拽</el-checkbox>
+    <el-checkbox v-model="editMode" border>{{ translate('uart.edit') }}</el-checkbox>
+    <el-checkbox v-model="draggableEnabled" border>{{ translate('uart.drag') }}</el-checkbox>
   </div>
   <div>
-    <el-alert v-if="store.ipChangeAlert" @close="store.ipChangeAlert=false">IP地址改变会导致配置丢失</el-alert>
+    <el-alert v-if="store.ipChangeAlert" @close="store.ipChangeAlert=false">{{ translate('uart.ipChangeAlert') }}</el-alert>
   </div>
 
   <VueDraggable v-model="store.macroData" handle=".sort-target"
@@ -67,6 +69,7 @@ import {VueDraggable} from "vue-draggable-plus";
 import {onMounted, ref} from "vue";
 import {globalNotify, globalNotifyRightSide} from "@/composables/notification";
 import {useDataViewerStore} from "@/stores/dataViewerStore";
+import {translate} from "../../locales";
 
 const editMode = ref(false);
 const draggableEnabled = ref(true);

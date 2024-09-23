@@ -364,18 +364,18 @@ export const useDataViewerStore = defineStore('text-viewer', () => {
 
     const frameBreakSize = ref(0);
     const frameBreakRules = ref([{
-        name: '超时(ms)',
+        name: 'timeout',
         type: 'number',
         min: -1,
         draggable: false,
         transformData: breakDelay,
     }, {
-        name: '匹配',
+        name: 'match',
         type: 'text',
         draggable: true,
         transformData: breakSequence,
     }, {
-        name: '字节(B)',
+        name: 'byte',
         type: 'number',
         min: 0,
         draggable: true,
@@ -437,9 +437,9 @@ export const useDataViewerStore = defineStore('text-viewer', () => {
     function reloadFrameBreak() {
         /* function and ref can not be stored in localStorage */
         for (let i = 0; i < frameBreakRules.value.length; i++) {
-            if (frameBreakRules.value[i].name === "超时(ms)") {
+            if (frameBreakRules.value[i].name === "timeout") {
                 frameBreakRules.value[i].transformData = breakDelay;
-            } else if (frameBreakRules.value[i].name === "匹配") {
+            } else if (frameBreakRules.value[i].name === "match") {
                 frameBreakRules.value[i].transformData = breakSequence;
             } else {
                 frameBreakRules.value[i].transformData = breakSize;

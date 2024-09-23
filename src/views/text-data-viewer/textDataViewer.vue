@@ -18,18 +18,18 @@
     </el-popover>
 
     <div class="flex">
-      <el-checkbox size="small" v-model="store.forceToBottom" label="自动滚动至底部" border/>
+      <el-checkbox size="small" v-model="store.forceToBottom" :label="translate('uart.autoScrollToBottom')" border/>
       <el-tooltip
           class="box-item"
           effect="light"
           placement="top"
       >
         <template #content>
-          <p>仅清除显示区域，可用刷新恢复</p>
+          <p>{{ translate('uart.clearTooltip') }}</p>
         </template>
         <el-button size="small" @click="store.clearFilteredBuff">
           <InlineSvg class="h-5" name="trash"></InlineSvg>
-          清屏 ⇩
+          {{ $t('uart.clearScreen') }} ⇩
         </el-button>
       </el-tooltip>
 
@@ -39,10 +39,10 @@
           placement="top"
       >
         <template #content>
-          <p>与缓存同步+过滤</p>
+          <p>{{ translate('uart.clearTooltip') }}</p>
         </template>
         <el-button size="small" @click="store.refreshFilteredBuff">
-          刷新
+          {{ $t('page.update') }}
         </el-button>
       </el-tooltip>
       <el-tooltip
@@ -51,10 +51,10 @@
           placement="top"
       >
         <template #content>
-          <p>仅停止刷新显示区，后台继续接收数据</p>
+          <p>{{ translate('uart.autoUpdateTooltip') }}</p>
         </template>
         <el-checkbox size="small" border v-model="store.dataFilterAutoUpdate">
-          自动刷新
+          {{ $t('uart.autoUpdate') }}
         </el-checkbox>
       </el-tooltip>
     </div>
@@ -77,7 +77,7 @@
             <p class="text-nowrap text-sm text-sky-500" v-else-if="item.type === 0" type="primary" v-show="store.showTimestamp">
               <span>{{ item.time }}</span>TX-►|</p>
             <p class="text-nowrap text-sm text-amber-800" v-else type="primary" v-show="store.showTimestamp">
-              <span>{{ item.time }}</span>未发送►|</p>
+              <span>{{ item.time }}</span>NS-►|</p>
 
             <p v-show="store.showText"
                v-html="item.str"></p>
@@ -111,7 +111,7 @@
             <p class="text-nowrap text-sm text-sky-500" v-else-if="item.type === 0" type="primary" v-show="store.showTimestamp">
               <span>{{ item.time }}</span>TX-►|</p>
             <p class="text-nowrap text-sm text-amber-800" v-else type="primary" v-show="store.showTimestamp">
-              <span>{{ item.time }}</span>未发送►|</p>
+                <span>{{ item.time }}</span>NS-►|</p>
             <p v-show="store.showText"
                v-html="item.str"></p>
           </div>
@@ -132,7 +132,7 @@
 
   <div class="shrink-0 flex h-8 mt-0.5 text-xs">
     <div class="flex shrink-0">
-      <el-tooltip content="未满足断帧规则的数据（如：未超时），暂时实时显示在此区域。超过8192字节，自动断帧；" effect="light">
+      <el-tooltip :content="translate('uart.tempDisplayTooltip')" effect="light">
         <InlineSvg name="help" class="w-3.5 h-3.5 text-gray-500 cursor-help"></InlineSvg>
       </el-tooltip>
       <p>►</p>
@@ -153,10 +153,10 @@
         </el-tag>
       </el-link>
 
-      <el-tooltip content="实际频率受界面刷新率影响，如需要更精确，可以尝试关闭‘自动刷新’" placement="right" effect="light" :show-after="1000">
+      <el-tooltip :content="translate('uart.loopSendTooltip')" placement="right" effect="light" :show-after="1000">
         <div class="flex align-center">
           <el-checkbox v-model="store.enableLoopSend" class="font-mono font-bold max-h-5" size="small" border>
-            循环发送(ms)
+            {{ translate('uart.loopSend') }}(ms)
           </el-checkbox>
           <el-input-number
               v-model="store.loopSendFreq"
@@ -170,7 +170,7 @@
       </el-tooltip>
 
       <el-link @click="store.isSendTextFormat = !store.isSendTextFormat">
-        <el-tag class="font-mono font-bold" size="small">发送格式：{{ store.isSendTextFormat ? "文本" : "HEX" }}</el-tag>
+        <el-tag class="font-mono font-bold" size="small">{{ translate('uart.sendFormat') }}：{{ store.isSendTextFormat ? translate("uart.text") : "HEX" }}</el-tag>
       </el-link>
     </div>
     <div class="flex gap-2">
@@ -189,7 +189,7 @@
           <el-link class="flex" @click="store.clearDataBuff" type="warning">
             <InlineSvg class="h-5" name="trash"></InlineSvg>
           </el-link>
-          <span class="align-text-bottom">缓存帧数: {{ store.dataBufLength }}/30000</span>
+          <span class="align-text-bottom">{{ translate('uart.cachedFrame') }}: {{ store.dataBufLength }}/30000</span>
         </el-tag>
       </div>
     </div>
@@ -197,14 +197,14 @@
   <div class="flex flex-row font-mono">
     <el-input type="textarea" :autosize="{ minRows: 1, maxRows: 6}" v-model="store.uartInputTextBox" clearable
               :placeholder="store.isSendTextFormat ?
-              '输入文本，支持\\n\\x转义' :
-              '输入HEX格式'"
+              translate('uart.textAndEscape') :
+              'HEX'"
               @keydown="handleTextboxKeydown"
     ></el-input>
-    <el-tooltip content="Ctrl+回车" placement="top" :auto-close="500">
+    <el-tooltip content="Ctrl+Enter" placement="top" :auto-close="500">
       <el-button type="primary"
                  @click="onSendClick">
-        {{ (store.isSendTextFormat || store.isHexStringValid) ? "发送" : "格式化" }}
+        {{ (store.isSendTextFormat || store.isHexStringValid) ? translate("uart.send") : translate("格式化") }}
       </el-button>
     </el-tooltip>
   </div>
@@ -217,6 +217,7 @@ import InlineSvg from "@/components/InlineSvg.vue";
 import TextDataConfig from "@/views/text-data-viewer/textDataConfig.vue";
 import {debouncedWatch} from "@vueuse/core";
 import {globalNotify} from "@/composables/notification";
+import {translate} from "../../locales";
 
 const count = ref(0);
 const vuetifyVirtualScrollBarRef = ref(document.body);
