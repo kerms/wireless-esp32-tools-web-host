@@ -6,6 +6,25 @@ export default {
     connected: "已连接",
     connecting: "连接中",
     use: "使用",
+    author: "作者",
+    studioYunSi: "允斯工作室",
+    authorEmail: "作者邮箱",
+    TencentQQGroup: "QQ群",
+    Discord: "Discord",
+    BiliBili: "哔哩哔哩",
+
+    suggestion: "建议",
+    feature: "需求",
+    version: "版本",
+    releaseTime: "发布时间",
+    credit: "鸣谢",
+    aboutWebHost: "关于网页版上位机",
+    aboutDebugger: "关于调试器",
+    officialWebsite: "官网",
+    email: "邮箱",
+    note: "备注",
+    welcomeMessage: "欢迎来打扰啊~",
+    serialNumber: "序列号",
 
     ws: {
         disconnected: "未连接",
@@ -127,5 +146,62 @@ export default {
         sendFormat: "发送格式",
         cachedFrame: "缓存帧数",
         format: "格式化",
+    },
+
+    wifi: {
+        settings: "配置",
+        setFailed: "设置失败",
+        setSuccess: "配置成功",
+        connection: "连接",
+        scanning: "扫描中",
+        scan: "扫描",
+        scanDone: "扫描成功",
+        warnWifiName: "请输入WIFI名",
+        password: "密码",
+        connectInfoHTML: "如果不是通过透传器的热点连接，更换Wi-Fi将导致此界面与透传器断开连接。",
+        connect: "连接",
+        mode: "模式",
+        save: "保存",
+        station: "终端",
+        intelligent: "智能",
+        APOnly: "仅开启热点",
+        disconnected: "未连接",
+        modeTipsHtml: "<p>\n" +
+            "<el-textsize=\"small\">智能模式：</el-text>\n" +
+            "成功连接至Wi-Fi后,如果此设备的热点未被其他设备连接,将在30秒后自动关闭热点;如果此设备与AP断开连接,将在5秒后自动开启热点\n" +
+            "</p>\n" +
+            "<p>\n" +
+            "<el-textsize=\"small\">热点+终端共存模式：</el-text>\n" +
+            "方便使用，但是影响稳定性，增加功耗\n" +
+            "</p>\n" +
+            "<p>\n" +
+            "<el-textsize=\"small\">单热点模式缺点：</el-text>\n" +
+            "无网络\n" +
+            "</p>",
+        enabled: "已开启",
+        disabled: "未开启",
+
+        stationInfo: "终端(STA)信息",
+        hotspotInfo: "自发热点(AP)信息",
+        signalStrength: "信号强度",
+        gateway: "网关",
+        netmask: "掩码",
+        primaryDNS: "首选DNS",
+        backupDNS: "备用DNS",
+        IPmode: "IP分配模式",
+        DNSmode: "DNS模式",
+        internalAddress: "内网地址",
+
+        autoIP: "自动 (DHCP)",
+        staticIP: "静态IP",
+        autoDNS: "自动 (使用网关)",
+        staticDNS: "静态DNS",
+        APauto_STA: "智能热点+常开终端 (AP+STA)",
+        APonly: "仅开启热点 (AP)",
+        AP_STA: "常开热点+常开终端 (AP+STA)",
+
+        connectionSuccess: "连接成功",
+        enterAPName: "请输入AP名",
+        debuggerNotConnected: "调试器未连接",
     }
 }

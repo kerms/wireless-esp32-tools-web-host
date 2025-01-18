@@ -5,6 +5,26 @@ export default {
     disconnected: "Disconnected",
     connected: "Connected",
     connecting: "Connecting",
+    use: "use",
+    author: "author",
+    studioYunSi: "Yunsi Studio",
+    authorEmail: "Author email",
+    TencentQQGroup: "QQ Group",
+    Discord: "Discord",
+    BiliBili: "BiliBili",
+
+    suggestion: "suggestion",
+    feature: "feature",
+    version: "Version",
+    releaseTime: "Release Time",
+    credit: "Credit",
+    aboutWebHost: "About the Web Host Application",
+    aboutDebugger: "About the Debugger",
+    officialWebsite: "Official Website",
+    email: "Email",
+    note: "Note",
+    welcomeMessage: "Welcome to reach out anytime",
+    serialNumber: "Serial Number",
 
     ws: {
         disconnected: "Disconnected",
@@ -122,6 +142,63 @@ export default {
         sendFormat: "Send Format",
         cachedFrame: "Cached",
         format: "Format",
+    },
+
+    wifi: {
+        settings: "Settings",
+        setFailed: "Settings failed to set",
+        setSuccess: "Settings saved",
+        connection: "Connection",
+        scanning: "Scanning",
+        scan: "Scan",
+        scanDone: "Scan done",
+        warnWifiName: "Enter Wi-Fi Name",
+        password: "Password",
+        connectInfoHTML: "Changing Wi-Fi will disconnect this interface from the passthrough device if not connected through its hotspot.",
+        connect: "Connect",
+        mode: "Mode",
+        save: "Save",
+        station: "Station",
+        intelligent: "Smart",
+        APOnly: "Hotspot Only",
+        disconnected: "Disconnected",
+        modeTipsHtml: "<p>\n" +
+            "<el-textsize=\"small\">Smart Mode:</el-text>\n" +
+            "After connecting to Wi-Fi, the hotspot will turn off automatically after 30 seconds if no device is connected. It will turn on after 5 seconds if disconnected from AP.\n" +
+            "</p>\n" +
+            "<p>\n" +
+            "<el-textsize=\"small\">Coexistence Mode:</el-text>\n" +
+            "Convenient but impacts stability and increases power consumption.\n" +
+            "</p>\n" +
+            "<p>\n" +
+            "<el-textsize=\"small\">Hotspot-Only Mode Drawback:</el-text>\n" +
+            "No network connection.\n" +
+            "</p>",
+        enabled: "Enabled",
+        disabled: "Disabled",
+
+        stationInfo: "Terminal (STA) Info",
+        hotspotInfo: "Hotspot (AP) Info",
+        signalStrength: "Signal Strength",
+        gateway: "Gateway",
+        netmask: "Netmask",
+        primaryDNS: "Primary DNS",
+        backupDNS: "Backup DNS",
+        IPmode: "IP Allocation Mode",
+        DNSmode: "DNS Mode",
+        internalAddress: "Internal Address",
+
+        autoIP: "Automatic (DHCP)",
+        staticIP: "Static IP",
+        autoDNS: "Automatic (Use Gateway)",
+        staticDNS: "Static DNS",
+        APauto_STA: "Smart Hotspot + Persistent Terminal (AP+STA)",
+        APonly: "Hotspot Only (AP)",
+        AP_STA: "Persistent Hotspot + Persistent Terminal (AP+STA)",
+
+        connectionSuccess: "Connection Successful",
+        enterAPName: "Entre the AP name",
+        debuggerNotConnected: "Debugger not connected",
     }
 
 };

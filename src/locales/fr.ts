@@ -5,6 +5,26 @@ export default {
     disconnected: "Déconnecté",
     connected: "Connecté",
     connecting: "Connexion..",
+    use: "utiliser",
+    author: "Auteur",
+    studioYunSi: "Studio Yunsi",
+    authorEmail: "Email de l'auteur",
+    TencentQQGroup: "Groupe QQ",
+    Discord: "Discord",
+    BiliBili: "BiliBili",
+
+    suggestion: "suggestion",
+    feature: "fonctionnalité",
+    version: "Version",
+    releaseTime: "Date de Publication",
+    credit: "Remerciements",
+    aboutWebHost: "À propos de l'Hôte Web",
+    aboutDebugger: "À propos du Débogueur",
+    officialWebsite: "Site Officiel",
+    email: "E-mail",
+    note: "Remarque",
+    welcomeMessage: "N'hésitez pas à venir nous solliciter.",
+    serialNumber: "Numéro de série",
 
     ws: {
         disconnected: "Déconnecté",
@@ -123,6 +143,62 @@ export default {
         sendFormat: "Format d'Envoi",
         cachedFrame: "Cache",
         format: "Format",
-    }
+    },
 
+    wifi: {
+        settings: "Paramètres",
+        setFailed: "Echec d'enregistrement de paramètres",
+        setSuccess: "Paramètres enregistrés",
+        connection: "Connexion",
+        scanning: "Recherche en cours",
+        scan: "Rechercher",
+        scanDone: "Fin recherche de Wi-Fi",
+        warnWifiName: "Entrez le nom du Wi-Fi",
+        password: "Mot de passe",
+        connectInfoHTML: "Changer de Wi-Fi déconnectera cette interface du dispositif de transmission s'il ne passe pas par le point d'accès.",
+        connect: "Connecter",
+        mode: "Mode",
+        save: "Enregistrer",
+        station: "Station",
+        intelligent: "Intelligent",
+        APOnly: "Point d'accès uniquement",
+        disconnected: "Déconnecté",
+        modeTipsHtml: "<p>\n" +
+            "<el-textsize=\"small\">Mode intelligent :</el-text>\n" +
+            "Après la connexion au Wi-Fi, le point d'accès s'éteindra automatiquement après 30 secondes si aucun appareil n'est connecté. Il s'allumera après 5 secondes si la connexion AP est perdue.\n" +
+            "</p>\n" +
+            "<p>\n" +
+            "<el-textsize=\"small\">Mode coexistence :</el-text>\n" +
+            "Pratique mais réduit la stabilité et augmente la consommation d'énergie.\n" +
+            "</p>\n" +
+            "<p>\n" +
+            "<el-textsize=\"small\">Inconvénient du mode point d'accès seul :</el-text>\n" +
+            "Pas de connexion réseau.\n" +
+            "</p>",
+        enabled: "Activé",
+        disabled: "Désactivé",
+
+        stationInfo: "Info Terminal (STA)",
+        hotspotInfo: "Info Point d'Accès (AP)",
+        signalStrength: "Puissance du Signal",
+        gateway: "Passerelle",
+        netmask: "Masque de Sous-réseau",
+        primaryDNS: "DNS Primaire",
+        backupDNS: "DNS Secondaire",
+        IPmode: "Mode d'Attribution IP",
+        DNSmode: "Mode DNS",
+        internalAddress: "Adresse Interne",
+
+        autoIP: "Automatique (DHCP)",
+        staticIP: "IP Statique",
+        autoDNS: "Automatique (gateway)",
+        staticDNS: "DNS Statique",
+        APauto_STA: "Point d'Accès Intelligent + Terminal Permanent (AP+STA)",
+        APonly: "Point d'Accès Seul (AP)",
+        AP_STA: "Point d'Accès Permanent + Terminal Permanent (AP+STA)",
+
+        connectionSuccess: "Connexion Réussie",
+        enterAPName: "Entrez le nom du AP",
+        debuggerNotConnected: "Debugger non connecté",
+    }
 };
