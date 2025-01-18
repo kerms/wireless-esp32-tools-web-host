@@ -1,5 +1,4 @@
-import {createRouter, createWebHistory} from 'vue-router'
-import Home from '@/views/Home.vue'
+import {createRouter, createWebHistory, type RouteLocationNormalizedLoaded} from 'vue-router'
 import Wifi from '@/views/Wifi.vue'
 import Feedback from '@/views/Feedback.vue'
 import About from '@/views/About.vue'
@@ -8,7 +7,40 @@ import Page404 from '@/views/404.vue'
 import Update from '@/views/Update.vue'
 import {translate} from "@/locales";
 import {isOTAEnabled} from "@/composables/buildMode";
+import {reactive, watch} from "vue";
+import {getLang} from "@/i18n";
 
+const languageState = reactive({
+    currentLanguage: getLang(), // Get the current language from your i18n setup
+});
+
+interface AppRouteMeta {
+    title?: string;
+    titleKey?: string;
+}
+
+const updateMetaTitles = () => {
+    router.getRoutes().forEach(route => {
+        const meta = route.meta as AppRouteMeta;
+        if (meta.titleKey) {
+            meta.title = translate(meta.titleKey);
+        }
+    });
+};
+
+function updateDocumentTitle(route: RouteLocationNormalizedLoaded) {
+    const meta = route.meta as AppRouteMeta;
+    document.title = typeof route.meta.title === 'string'
+        ? `${translate(meta.titleKey || "")} | ${translate('studioYunSi')}`
+        : '允斯调试器';
+}
+
+// Watch for language changes to update the titles dynamically
+watch(() => languageState.currentLanguage, () => {
+    // Recompute all route meta titles
+    updateMetaTitles();
+    updateDocumentTitle(router.currentRoute.value);
+}, {deep: true});
 
 const router = createRouter({
     history: createWebHistory(import.meta.env.BASE_URL),
@@ -16,46 +48,49 @@ const router = createRouter({
         {
             path: '/',
             name: 'home',
-            meta: {title: translate("page.home")},
-            // component: Wifi
+            meta: { titleKey: 'page.home' },
             redirect: () => '/uart',
         }, {
             path: '/home:ext(.*)',
-            meta: {title: translate("page.home")},
+            meta: { titleKey: 'page.home' },
             redirect: () => '/',
         }, {
             path: '/wifi:ext(.*)',
-            meta: {title: translate('page.wifi')},
+            meta: { titleKey: 'page.wifi' },
             component: Wifi,
         }, {
             path: '/about:ext(.*)',
-            meta: {title: translate('page.about')},
+            meta: { titleKey: 'page.about' },
             component: About,
         }, {
             path: '/uart:ext(.*)',
-            meta: {title: translate('page.uart')},
+            meta: { titleKey: 'page.uart' },
             component: Uart,
         }, {
             path: '/feedback:ext(.*)',
-            meta: {title: translate('page.feedback')},
+            meta: { titleKey: 'page.feedback' },
             name: 'feedback',
             component: Feedback,
         }, {
             path: '/update:ext(.*)',
-            meta: {title: translate('page.update')},
+            meta: { titleKey: 'page.update' },
             name: 'update',
             component: isOTAEnabled() ? Update : Page404,
         }, {
-            path: '/:catchAll(.*)', // This will match all paths that aren't matched by above routes
+            path: '/:catchAll(.*)', // Catch-all route for 404
             name: 'NotFound',
             component: Page404,
         },
     ]
 })
 
+// Update document title dynamically
 router.beforeEach((to, from, next) => {
-    document.title = typeof to.meta.title === 'string' ? to.meta.title + " | 允斯工作室" : '允斯调试器';
+    updateDocumentTitle(to);
     next();
 });
 
-export default router
+// Initialize titles on load
+updateMetaTitles();
+
+export default router;

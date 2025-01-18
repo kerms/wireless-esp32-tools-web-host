@@ -45,4 +45,8 @@ export function setLang(lang: string): void {
     }
 }
 
+export function getLang() {
+    return i18n.global.locale;
+}
+
 export default i18n;
