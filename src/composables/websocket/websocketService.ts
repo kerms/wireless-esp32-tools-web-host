@@ -127,7 +127,7 @@ class WebsocketClassic implements IWebsocketService{
 }
 
 export function getWebsocketService(): IWebsocketService {
-    if (typeof SharedWorker !== 'undefined') {
+    if (typeof SharedWorker !== 'undefined' && typeof localStorage !== 'undefined') {
         return WebsocketShared.getInstance();
     } else {
         return WebsocketClassic.getInstance();
