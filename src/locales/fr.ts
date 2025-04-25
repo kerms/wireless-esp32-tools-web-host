@@ -108,7 +108,7 @@ export default {
         addHeader: "Ajouter un En-tête",
         addFooter: "Ajouter un Pied de page",
 
-        passthrough: "Passage Direct",
+        passthrough: "Transmission",
         proxy: "Proxy",
         serverPort: "Port Serveur",
         connectedClient: "Client Connecté",

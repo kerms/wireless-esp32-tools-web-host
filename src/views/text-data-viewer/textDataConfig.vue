@@ -4,7 +4,7 @@
       <el-tab-pane name="first" class="min-h-80">
         <template #label>{{ $t("uart.port") }}</template>
         <div class="flex flex-col gap-2">
-          <el-form :size="store.winLeft.show ? '' : 'small'">
+          <el-form :size="store.winLeft.show ? '' : 'small'" label-position="left" label-width="auto">
             <el-form-item
                 class="mb-2"
             >
@@ -86,16 +86,14 @@
               </el-select>
             </el-form-item>
 
-            <el-form-item label=" ">
-              <div class="flex">
-                <el-button :type="store.acceptIncomingData ? 'danger': 'success'"
-                           :disabled="wsStore.state !== ControlEvent.CONNECTED"
-                           @click="store.acceptIncomingData = !store.acceptIncomingData"
-                >
-                  {{ store.acceptIncomingData ? $t("uart.stopCommunication") : $t("uart.startCommunication") }}
-                </el-button>
-              </div>
-            </el-form-item>
+            <div class="flex justify-center">
+              <el-button :type="store.acceptIncomingData ? 'danger': 'success'"
+                         :disabled="wsStore.state !== ControlEvent.CONNECTED"
+                         @click="store.acceptIncomingData = !store.acceptIncomingData"
+              >
+                {{ store.acceptIncomingData ? $t("uart.stopCommunication") : $t("uart.startCommunication") }}
+              </el-button>
+            </div>
           </el-form>
         </div>
 
