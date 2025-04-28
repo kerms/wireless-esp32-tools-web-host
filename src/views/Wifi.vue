@@ -80,7 +80,6 @@
 
 
     <el-descriptions
-        :title="'Wi-Fi ' + translate('wifi.stationInfo')"
         :column="1"
         border
         class="description-style"
@@ -90,7 +89,7 @@
         <el-tag v-if="!isConnected" type="danger">{{ translate('wifi.disconnected') }}</el-tag>
       </template>
       <template #extra>
-        <el-switch v-model="wifiSta_On" :disabled="wsStore.state != ControlEvent.CONNECTED || !wifiAp_On"
+        <el-switch v-model="wifiSta_On" :disabled="!isConnected || !wifiAp_On"
                    :active-text="translate('wifi.enabled')" :inactive-text="translate('wifi.disabled')" :loading="wifiMode_loading"
                    :before-change="()=>beforeWifiModeChange('STA')"
         />
@@ -102,7 +101,7 @@
           </div>
         </template>
         <template #default>
-          <p>{{ wifiStaApInfo.rssi }}</p>
+          <p> {{ wifi_rssi_to_percent(wifiStaApInfo.rssi) }} % ({{ wifiStaApInfo.rssi }} dBm)</p>
         </template>
       </el-descriptions-item>
       <el-descriptions-item span="4">
@@ -174,7 +173,7 @@
             {{ translate('wifi.IPmode') }}
           </div>
         </template>
-        <el-select v-model="wifiStaticInfo.static_ip_en" :disabled="wsStore.state != ControlEvent.CONNECTED">
+        <el-select v-model="wifiStaticInfo.static_ip_en" :disabled="!isConnected">
           <el-option
               v-for="item in staIPModeOptions"
               :key="item.key"
@@ -212,7 +211,7 @@
             {{ translate('wifi.DNSmode') }}
           </div>
         </template>
-        <el-select v-model="wifiStaticInfo.static_dns_en" :disabled="wsStore.state != ControlEvent.CONNECTED">
+        <el-select v-model="wifiStaticInfo.static_dns_en" :disabled="!isConnected">
           <el-option
               v-for="item in staDNSModeOptions"
               :key="item.key"
@@ -245,7 +244,6 @@
     <el-divider></el-divider>
 
     <el-descriptions
-        :title="'Wi-Fi ' + translate('wifi.hotspotInfo')"
         :column="1"
         border
         class="description-style"
@@ -255,7 +253,7 @@
         <el-tag v-if="!isConnected" type="danger">{{ translate('wifi.disconnected') }}</el-tag>
       </template>
       <template #extra>
-        <el-switch v-model="wifiAp_On" :disabled="wsStore.state != ControlEvent.CONNECTED || !wifiSta_On"
+        <el-switch v-model="wifiAp_On" :disabled="!isConnected || !wifiSta_On"
                    :loading="wifiMode_loading" :active-text="translate('wifi.enabled')" :inactive-text="translate('wifi.disabled')"
                    :before-change="()=>beforeWifiModeChange('AP')"
         />
@@ -386,21 +384,19 @@ let wifiModeOptions = computed( () => [
 
 let wsStore = useWsStore();
 
-const defWifiInfo: ComputedRef<WifiInfo> = computed(() => {
-  return {
-    cmd: 1,
-    module: 1,
-    gateway: translate('wifi.disconnected'),
-    ip: translate('wifi.disconnected'),
-    mac: translate('wifi.disconnected'),
-    dns_main: translate('wifi.disconnected'),
-    dns_backup: translate('wifi.disconnected'),
-    rssi: 0,
-    netmask: translate('wifi.disconnected'),
-    ssid: translate('wifi.disconnected'),
-    password: ""
-  };
-});
+const defWifiInfo: WifiInfo = {
+  cmd: 1,
+  module: 1,
+  gateway: "-",
+  ip: "-",
+  mac: "-",
+  dns_main: "-",
+  dns_backup: "-",
+  rssi: 0,
+  netmask: "-",
+  ssid: "-",
+  password: "",
+}
 
 const staIPModeOptions = [
   {
@@ -422,8 +418,9 @@ const staDNSModeOptions = [
   },
 ]
 
-let wifiStaApInfo: ComputedRef<WifiInfo> = computed(() => defWifiInfo.value);
-let wifiApInfo: ComputedRef<WifiInfo> = computed(() => defWifiInfo.value);
+const isConnected = computed(() => wsStore.state === ControlEvent.CONNECTED)
+let wifiStaApInfo = reactive<WifiInfo>({...defWifiInfo});
+let wifiApInfo = reactive<WifiInfo>({...defWifiInfo});
 let wifiStaticInfo = reactive<IWifiStaStaticInfo>({
   dns_backup: "0.0.0.0",
   dns_main: "0.0.0.0",
@@ -463,7 +460,7 @@ const onClientMsg = (msg: ApiJsonMsg) => {
       }
       if (connectBtnClicked) {
         connectBtnClicked = 0;
-        globalNotifyRightSide(wifiStaApInfo.value.ssid + " " + translate('wifi.connectionSuccess'), "success");
+        globalNotifyRightSide(wifiStaApInfo.ssid + " " + translate('wifi.connectionSuccess'), "success");
         wifi_sta_get_static_info();
       }
       break;
@@ -573,7 +570,7 @@ const onClientCtrl = (msg: ControlMsg) => {
 };
 
 function onScanClick() {
-  if (wsStore.state !== ControlEvent.CONNECTED) {
+  if (!isConnected.value) {
     globalNotify(translate('wifi.debuggerNotConnected'), 'error');
     return;
   }
@@ -582,7 +579,7 @@ function onScanClick() {
 }
 
 function onConnectClick() {
-  if (wsStore.state !== ControlEvent.CONNECTED) {
+  if (!isConnected.value) {
     globalNotify(translate('wifi.debuggerNotConnected'), 'error');
     return;
   }
@@ -609,13 +606,24 @@ function wifiChangeMode() {
   wifi_set_mode(wifiMode.value);
 }
 
+function wifi_rssi_to_percent(rssi: number)
+{
+  if (rssi <= -100) {
+    return 0;
+  } else if (rssi >= -50) {
+    return 100;
+  } else {
+    return 2 * (rssi + 100);
+  }
+}
+
 function wifiApChangeCredential() {
-  if (wifiApInfo.value.ssid === "") {
+  if (wifiApInfo.ssid === "") {
     globalNotifyRightSide(translate('wifi.enterAPName'), "error");
     return;
   }
   wifiMode_loading.value = true;
-  wifi_ap_set_credential(wifiApInfo.value.ssid, wifiApInfo.value.password);
+  wifi_ap_set_credential(wifiApInfo.ssid, wifiApInfo.password);
 }
 
 function wifiStaSetStaticInfo() {
