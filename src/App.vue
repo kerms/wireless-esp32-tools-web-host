@@ -10,7 +10,7 @@ import type {ControlMsg, ServerMsg} from "@/api";
 import {ControlEvent, ControlMsgType} from "@/api";
 import {routeCtrlMsg, routeModuleServerMsg} from "@/router/msgRouter";
 import {globalNotify} from "@/composables/notification";
-import {getTrialDate, isDevMode, isOTAEnabled, isTrialMode} from "@/composables/buildMode";
+import {getTrialDate, getTrialMsg, isDevMode, isOTAEnabled, isTrialMode} from "@/composables/buildMode";
 import {useSystemModule} from "@/composables/useSystemModule";
 import {useDataFlowModule} from "@/composables/useDataFlowModule";
 import {useUpdateModule} from "@/composables/useUpdateModule";
@@ -61,7 +61,7 @@ onMounted(() => {
   }
 
   if (isTrialMode()) {
-    ElMessageBox.alert('感谢您试用串口透传固件，如果觉得好用，可购买标准版支持我，谢谢！', getTrialDate(), {
+    ElMessageBox.alert(getTrialMsg(), getTrialDate(), {
       confirmButtonText: '好的',
     });
   }
