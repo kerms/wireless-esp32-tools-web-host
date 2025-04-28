@@ -178,8 +178,8 @@ export default {
         enabled: "Activé",
         disabled: "Désactivé",
 
-        stationInfo: "Info Terminal (STA)",
-        hotspotInfo: "Info Point d'Accès (AP)",
+        stationInfo: "Terminal(STA)",
+        hotspotInfo: "Point d'Accès(AP)",
         signalStrength: "Puissance du Signal",
         gateway: "Passerelle",
         netmask: "Masque de Sous-réseau",

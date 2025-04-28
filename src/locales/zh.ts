@@ -181,8 +181,8 @@ export default {
         enabled: "已开启",
         disabled: "未开启",
 
-        stationInfo: "终端(STA)信息",
-        hotspotInfo: "自发热点(AP)信息",
+        stationInfo: "终端(STA)",
+        hotspotInfo: "自发热点(AP)",
         signalStrength: "信号强度",
         gateway: "网关",
         netmask: "掩码",

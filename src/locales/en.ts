@@ -177,8 +177,8 @@ export default {
         enabled: "Enabled",
         disabled: "Disabled",
 
-        stationInfo: "Terminal (STA) Info",
-        hotspotInfo: "Hotspot (AP) Info",
+        stationInfo: "Terminal (STA)",
+        hotspotInfo: "Hotspot (AP)",
         signalStrength: "Signal Strength",
         gateway: "Gateway",
         netmask: "Netmask",

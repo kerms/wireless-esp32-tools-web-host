@@ -46,7 +46,7 @@
       </el-form-item>
       <div class="mb-2">
         <el-alert type="info" show-icon>
-          {{ translate("wifi.connectInfo")}}
+          {{ translate("wifi.connectInfoHTML")}}
         </el-alert>
       </div>
       <div class="flex justify-center">
@@ -85,6 +85,10 @@
         border
         class="description-style"
     >
+      <template #title>
+        Wi-Fi {{ translate('wifi.stationInfo') }}
+        <el-tag v-if="!isConnected" type="danger">{{ translate('wifi.disconnected') }}</el-tag>
+      </template>
       <template #extra>
         <el-switch v-model="wifiSta_On" :disabled="wsStore.state != ControlEvent.CONNECTED || !wifiAp_On"
                    :active-text="translate('wifi.enabled')" :inactive-text="translate('wifi.disabled')" :loading="wifiMode_loading"
@@ -246,6 +250,10 @@
         border
         class="description-style"
     >
+      <template #title>
+        Wi-Fi {{ translate('wifi.hotspotInfo') }}
+        <el-tag v-if="!isConnected" type="danger">{{ translate('wifi.disconnected') }}</el-tag>
+      </template>
       <template #extra>
         <el-switch v-model="wifiAp_On" :disabled="wsStore.state != ControlEvent.CONNECTED || !wifiSta_On"
                    :loading="wifiMode_loading" :active-text="translate('wifi.enabled')" :inactive-text="translate('wifi.disabled')"
