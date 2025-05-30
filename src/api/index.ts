@@ -31,9 +31,11 @@ export interface ServerMsg {
 }
 
 export enum WtModuleID {
+    SYSTEM = 0,
     WIFI = 1,
     DATA_FLOW = 2,
     UART = 4,
+    OTA = 5,
 }
 
 export function sendJsonMsg(apiJsonMsg: ApiJsonMsg) {

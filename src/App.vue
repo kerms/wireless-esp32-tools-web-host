@@ -10,7 +10,11 @@ import type {ControlMsg, ServerMsg} from "@/api";
 import {ControlEvent, ControlMsgType} from "@/api";
 import {routeCtrlMsg, routeModuleServerMsg} from "@/router/msgRouter";
 import {globalNotify} from "@/composables/notification";
-import {isDevMode} from "@/composables/buildMode";
+import {getTrialDate, getTrialMsg, isDevMode, isOTAEnabled, isTrialMode} from "@/composables/buildMode";
+import {useSystemModule} from "@/composables/useSystemModule";
+import {useDataFlowModule} from "@/composables/useDataFlowModule";
+import {useUpdateModule} from "@/composables/useUpdateModule";
+import {ElMessageBox} from "element-plus";
 
 const wsState = useWsStore();
 
@@ -38,7 +42,7 @@ let websocketService: IWebsocketService;
 onMounted(() => {
 
   logHelloMessage();
-  let host = "";
+  let host: string;
   if (isDevMode()) {
     host = import.meta.env.VITE_DEVICE_HOST_NAME || "dap.local";
   } else {
@@ -46,7 +50,21 @@ onMounted(() => {
   }
   websocketService = getWebsocketService();
   websocketService.init(host, onServerMsg, onClientCtrl);
+  websocketService.getSocketStatus();
   changeFavicon();
+
+  useSystemModule();
+  useDataFlowModule();
+
+  if (isOTAEnabled()) {
+    useUpdateModule();
+  }
+
+  if (isTrialMode()) {
+    ElMessageBox.alert(getTrialMsg(), getTrialDate(), {
+      confirmButtonText: '好的',
+    });
+  }
 });
 
 onUnmounted(() => {
@@ -55,10 +73,16 @@ onUnmounted(() => {
 </script>
 
 <template>
-  <div class="flex flex-col h-screen">
+  <div class="flex flex-col wt-h-100">
     <header>
       <nav-bar/>
     </header>
     <RouterView/>
   </div>
 </template>
+
+<style>
+.wt-h-100 {
+  height: 100vh;
+}
+</style>

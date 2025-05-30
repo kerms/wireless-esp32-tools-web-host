@@ -12,6 +12,9 @@ const moduleMap = new Map<number, IModuleCallback>();
 
 export function registerModule(moduleId: number, moduleCallback: IModuleCallback): boolean {
     if (moduleMap.has(moduleId)) {
+        if (isDevMode()) {
+            console.log("module ", moduleId, "already registered");
+        }
         return false;
     }
 

@@ -1,22 +1,25 @@
 <script setup lang="ts">
+import {useSystemStore} from "@/stores/useSystemStore";
+import {translate} from "@/locales";
+
 const version = import.meta.env.VITE_APP_GIT_TAG || "v0.0.0";
 const compileTime = import.meta.env.VITE_APP_LAST_COMMIT || "1970-00-00";
+const sysStore = useSystemStore();
 </script>
 
 <template>
   <div class="text-layout">
     <el-divider></el-divider>
-    <el-divider>关于</el-divider>
+    <el-divider>{{ translate('page.about') }}</el-divider>
     <el-divider></el-divider>
     <el-collapse>
-      <el-collapse-item title="关于网页版上位机">
+      <el-collapse-item :title="translate('aboutWebHost')">
         <el-descriptions border :column="1" class="mt-5 description-style">
-          <el-descriptions-item label="版本">{{ version }}</el-descriptions-item>
-          <el-descriptions-item label="发布时间">{{ compileTime }}</el-descriptions-item>
-          <el-descriptions-item label="许可证">MIT</el-descriptions-item>
+          <el-descriptions-item :label="translate('version')">{{ version }}</el-descriptions-item>
+          <el-descriptions-item :label="translate('releaseTime')">{{ compileTime }}</el-descriptions-item>
         </el-descriptions>
 
-        <el-descriptions title="鸣谢" border :column="1" class="mt-5 description-style">
+        <el-descriptions :title="translate('credit')" border :column="1" class="mt-5 description-style">
           <el-descriptions-item label="vuejs"><a target="_blank" href="https://github.com/vuejs/vue/blob/main/LICENSE">MIT</a>
           </el-descriptions-item>
           <el-descriptions-item label="typescript"><a
@@ -40,13 +43,15 @@ const compileTime = import.meta.env.VITE_APP_LAST_COMMIT || "1970-00-00";
           </el-descriptions-item>
         </el-descriptions>
       </el-collapse-item>
-      <el-collapse-item title="关于下位机">
+      <el-collapse-item :title="translate('aboutDebugger')">
         <el-descriptions border :column="1" class="mt-5 description-style">
-          <el-descriptions-item label="官网"><a target="_blank" href="https://yunsi.studio/wireless-proxy">允斯工作室</a></el-descriptions-item>
-          <el-descriptions-item label="版本">-</el-descriptions-item>
+          <el-descriptions-item :label="translate('officialWebsite')"><a target="_blank" href="https://yunsi.studio/wireless-debugger">https://yunsi.studio/wireless-debugger</a></el-descriptions-item>
+          <el-descriptions-item :label="translate('version')">{{ sysStore.curFmInfo.ver }}</el-descriptions-item>
+          <el-descriptions-item :label="translate('releaseTime')">{{ sysStore.curFmInfo.date }}</el-descriptions-item>
+          <el-descriptions-item :label="translate('serialNumber')">{{ sysStore.sysInfo.sn }}</el-descriptions-item>
         </el-descriptions>
 
-        <el-descriptions title="鸣谢" border :column="1" class="mt-5 description-style">
+        <el-descriptions :title="translate('credit')" border :column="1" class="mt-5 description-style">
           <el-descriptions-item label="windowsair"><a target="_blank" href="https://github.com/windowsair/wireless-esp8266-dap">wireless-esp8266-dap</a>
           </el-descriptions-item>
         </el-descriptions>
@@ -54,22 +59,22 @@ const compileTime = import.meta.env.VITE_APP_LAST_COMMIT || "1970-00-00";
     </el-collapse>
 
 
-    <el-descriptions title="作者：空空(kerms)" border :column="1" class="mt-5 description-style">
-      <el-descriptions-item label="官网"><a target="_blank" href="https://yunsi.studio/">允斯工作室（https://yunsi.studio/）</a></el-descriptions-item>
+    <el-descriptions :title="translate('author') + ' :空空(kerms)'" border :column="1" class="mt-5 description-style">
+      <el-descriptions-item :label="translate('officialWebsite')"><a target="_blank" href="https://yunsi.studio/">https://yunsi.studio/</a></el-descriptions-item>
       <el-descriptions-item label="github"><a target="_blank" href="https://github.com/kerms">https://github.com/kerms</a>
       </el-descriptions-item>
-      <el-descriptions-item label="邮箱">kerms@niazo.org</el-descriptions-item>
+      <el-descriptions-item :label="translate('email')">kerms@niazo.org</el-descriptions-item>
       <el-descriptions-item label="BiliBili"><a target="_blank" href="https://space.bilibili.com/3461571571353885">3461571571353885</a>
       </el-descriptions-item>
-      <el-descriptions-item label="QQ群">642246000</el-descriptions-item>
-      <el-descriptions-item label="备注">欢迎大家来打扰啊～</el-descriptions-item>
+      <el-descriptions-item :label="translate('TencentQQGroup')">642246000</el-descriptions-item>
+      <el-descriptions-item :label="translate('note')">{{ translate('welcomeMessage') }}</el-descriptions-item>
     </el-descriptions>
   </div>
   <el-divider></el-divider>
 
 </template>
 
-<style scoped>
+<style scoped lang="postcss">
 .description-style :deep(.el-descriptions__label) {
   @apply w-32
 }

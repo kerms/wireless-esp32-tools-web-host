@@ -18,7 +18,7 @@
   "dependencies": {
     "@vueuse/core": "^10.9.0",
     "ansi_up": "^6.0.2",
-    "element-plus": "^2.7.3",
+    "element-plus": "^2.8.1",
     "mitt": "^3.0.1",
     "pinia": "^2.1.7",
     "vue": "^3.4.21",

@@ -2,7 +2,7 @@ import MyWorker from '@/composables/websocket/ws.sharedworker?sharedworker'
 import {WebsocketWrapper} from "@/composables/websocket/websocketWrapper";
 import {toClient, toClientCtrl, toServer} from "@/composables/broadcastChannelDef";
 import type {ControlMsg, ServerMsg} from "@/api";
-import {ControlEvent, ControlMsgType} from "@/api";
+import {ControlMsgType} from "@/api";
 import {isDevMode} from "@/composables/buildMode";
 
 export interface IWebsocketService {
@@ -14,12 +14,13 @@ export interface IWebsocketService {
     deinit(): void;
 
     send(msg: ServerMsg): void;
+    getSocketStatus(): void;
 }
 
 /**
  * Websocket that run in a shared worker, shared across tabs
  */
-class WebsocketShared implements IWebsocketService{
+class WebsocketShared implements IWebsocketService {
     private static instance: IWebsocketService;
 
     private worker: SharedWorker;
@@ -82,6 +83,10 @@ class WebsocketShared implements IWebsocketService{
 
         this.ctrlCallback(ev.data);
     }
+
+    getSocketStatus() {
+        this.worker.port.postMessage({type: ControlMsgType.WS_GET_STATE} as ControlMsg)
+    }
 }
 
 class WebsocketClassic implements IWebsocketService{
@@ -115,10 +120,14 @@ class WebsocketClassic implements IWebsocketService{
     send(msg: ServerMsg): void {
         this.socket.send(msg);
     }
+
+    getSocketStatus(): void {
+        this.socket.getSocketStatus();
+    }
 }
 
 export function getWebsocketService(): IWebsocketService {
-    if (typeof SharedWorker !== 'undefined') {
+    if (typeof SharedWorker !== 'undefined' && typeof localStorage !== 'undefined') {
         return WebsocketShared.getInstance();
     } else {
         return WebsocketClassic.getInstance();

@@ -1,5 +1,4 @@
-
-import type {ApiJsonMsg, ControlMsg, ServerMsg} from "@/api";
+import type {ControlMsg, ServerMsg} from "@/api";
 import {ControlEvent, ControlMsgType} from "@/api";
 import {isDevMode} from "@/composables/buildMode";
 
@@ -9,6 +8,8 @@ interface IWebsocket {
     close(): void;
 
     send(msg: ServerMsg): void;
+
+    getSocketStatus(): void;
 }
 
 class WebsocketDummy implements IWebsocket {
@@ -19,6 +20,9 @@ class WebsocketDummy implements IWebsocket {
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
     send(msg: ServerMsg) {
 
+    }
+
+    getSocketStatus(): void {
     }
 }
 
@@ -61,6 +65,8 @@ class OneTimeWebsocket implements IWebsocket {
                     console.log("No heart beat, break connection");
                     this.close();
                     this.clear();
+                // } else if (this.socket.readyState === this.socket.CONNECTING) {
+                //     this.close();
                 }
                 if (isDevMode()) {
                     console.log("interval: ", this.heartBeatTimeCount, "state: ", this.socket.readyState);
@@ -159,6 +165,26 @@ class OneTimeWebsocket implements IWebsocket {
         this.ctrlCallback(msg);
         this.closeCallback();
     }
+
+    getSocketStatus() {
+        let type: ControlEvent;
+        switch (this.socket.readyState) {
+            case WebSocket.CONNECTING:
+                type = ControlEvent.CONNECTING;
+                break;
+            case WebSocket.OPEN:
+                type = ControlEvent.CONNECTED;
+                break;
+            default:
+                type = ControlEvent.DISCONNECTED;
+                break;
+        }
+        const msg: ControlMsg = {
+            type: ControlMsgType.WS_EVENT,
+            data: type,
+        };
+        this.ctrlCallback(msg);
+    }
 }
 
 export class WebsocketWrapper {
@@ -218,5 +244,9 @@ export class WebsocketWrapper {
 
     send(msg: ServerMsg) {
         this.socket.send(msg)
+    }
+
+    getSocketStatus() {
+        this.socket.getSocketStatus();
     }
 }
