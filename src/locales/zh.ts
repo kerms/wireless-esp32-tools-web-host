@@ -37,6 +37,7 @@ export default {
         wifi: "Wi-Fi",
         about: "关于",
         uart: "UART",
+        at: "AT命令",
         feedback: "反馈",
         close: "关闭",
         update: "更新",

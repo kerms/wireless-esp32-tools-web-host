@@ -37,6 +37,7 @@ export default {
         wifi: "Wi-Fi",
         about: "À propos",
         uart: "Uart",
+        at: "Commande AT",
         feedback: "Feedback",
         close: "Fermer",
         update: "Mise à jour",

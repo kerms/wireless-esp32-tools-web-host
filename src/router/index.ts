@@ -5,6 +5,7 @@ import About from '@/views/About.vue'
 import Uart from '@/views/Uart.vue'
 import Page404 from '@/views/404.vue'
 import Update from '@/views/Update.vue'
+import AtCommand from '@/views/AtCommand.vue'
 import {translate} from "@/locales";
 import {isOTAEnabled} from "@/composables/buildMode";
 import {reactive, watch} from "vue";
@@ -66,6 +67,10 @@ const router = createRouter({
             path: '/uart:ext(.*)',
             meta: { titleKey: 'page.uart' },
             component: Uart,
+        }, {
+            path: '/at:ext(.*)',
+            meta: { titleKey: 'page.at' },
+            component: AtCommand,
         }, {
             path: '/feedback:ext(.*)',
             meta: { titleKey: 'page.feedback' },

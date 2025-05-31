@@ -23,6 +23,7 @@
     "pinia": "^2.1.7",
     "vue": "^3.4.21",
     "vue-draggable-plus": "^0.4.1",
+    "vue-grid-layout-v3": "^3.1.2",
     "vue-i18n": "^9.10.2",
     "vue-router": "^4.3.0",
     "vuetify": "^3.6.5"

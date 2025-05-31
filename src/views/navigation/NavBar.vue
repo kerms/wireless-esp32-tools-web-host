@@ -194,11 +194,14 @@ const menuItems: ComputedRef<Item[]> = computed(() => ([
 const sideBarItems: ComputedRef<Item[]> = computed(() => {
   const items: Item[] = [
     {
+      name: translate("page.wifi"),
+      href: "/wifi",
+    }, {
       name: translate("page.uart"),
       href: "/uart",
     }, {
-      name: translate("page.wifi"),
-      href: "/wifi",
+      name: translate("page.at"),
+      href: "/at",
     }, {
       name: translate("page.about"),
       href: "/about",
