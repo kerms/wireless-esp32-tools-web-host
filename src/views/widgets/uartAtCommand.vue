@@ -1,32 +1,26 @@
 <template>
   <div class="p-1 border border-gray-300 rounded bg-white text-xs">
-    <div v-if="isEditingCell">
-      <div class="mb-1">
-        <el-input v-model="model.label" placeholder="Label" size="small">
-          <template #prepend>Label</template>
-        </el-input>
-      </div>
-      <div class="mb-1">
-        <el-input v-model="model.command" placeholder="AT Command" size="small">
-          <template #prepend>Command</template>
-        </el-input>
-      </div>
+    <div v-if="isEditingCell" class="flex">
+      <el-tag size="large" type="success" class="drag-handle mr-1 cursor-move"> = </el-tag>
       <div>
-        <el-input v-model="model.response" placeholder="Expected Response" size="small">
-          <template #prepend>Response</template>
-        </el-input>
+        <div class="mb-1">
+          <el-input v-model="model.label" placeholder="Label" size="small">
+            <template #prepend>Label</template>
+          </el-input>
+        </div>
+        <div class="mb-1">
+          <el-input v-model="model.command" placeholder="AT Command" size="small">
+            <template #prepend>Command</template>
+          </el-input>
+        </div>
       </div>
     </div>
-    <div v-else>
-      <div class="mb-px truncate" :title="model.label">
-        <strong>L:</strong>
-        <el-text class="ml-1">{{ model.label }}</el-text>
+    <div v-else class="">
+      <div class="mb-px truncate flex justify-between" :title="model.label">
+        <el-text class="font-bold">{{ model.label }}</el-text>
+        <p class="ml-1 font-mono text-gray-500 text-[10px]">{{ model.command }}</p>
       </div>
-      <div class="mb-px truncate" :title="model.command">
-        <strong>C:</strong>
-        <el-text class="ml-1">{{ model.command }}</el-text>
-      </div>
-      <div class="truncate" :title="model.response">
+      <div :title="model.response">
         <strong>R:</strong>
         <el-text class="ml-1">{{ model.response }}</el-text>
       </div>

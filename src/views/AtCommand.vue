@@ -4,7 +4,7 @@
       <el-checkbox v-model="config.editGrid" border>Edit Grid</el-checkbox>
       <el-checkbox v-model="config.editGridCell" border>Edit Grid Cell</el-checkbox>
     </div>
-    <div class="flex-1 bg-gray-200 overflow-auto min-h-0">
+    <div class="flex-1 bg-gray-100 overflow-auto min-h-0">
       <GridLayout
         v-model:layout="layout"
         :col-num="20"
@@ -21,23 +21,40 @@
           v-bind="item"
           class="bg-blue-300 rounded-md flex flex-col text-xs p-1"
         >
-          <div v-if="config.editGridCell" class="mb-1">
-            <el-input v-model="item.title" size="small" placeholder="Grid Item Title" />
+          <div class="flex justify-between">
+            <div v-if="config.editGridCell">
+              <el-input v-model="item.title" size="small" placeholder="Grid Item Title" />
+            </div>
+            <div
+              v-else-if="item.title"
+              class="mb-1 p-1 bg-blue-400 text-white rounded truncate"
+              :title="item.title"
+            >
+              {{ item.title }}
+            </div>
+            <el-check-tag
+              v-if="config.editGrid"
+              :checked="item.static"
+              type="danger"
+              class="self-center px-1"
+              @click="item.static = !item.static"
+            >
+              <InlineSvg v-if="item.static" name="lock" width="20"></InlineSvg>
+              <InlineSvg v-else name="lock_open" width="20"></InlineSvg>
+            </el-check-tag>
           </div>
-          <div
-            v-else-if="item.title"
-            class="mb-1 p-1 bg-blue-400 text-white rounded truncate"
-            :title="item.title"
-          >
-            {{ item.title }}
-          </div>
-          <div class="bg-amber-500 overflow-y-auto min-h-0 flex-1 p-1 space-y-1">
+
+          <div class="bg-amber-500 overflow-y-auto min-h-0 flex-1 flex-col">
             <VueDraggable
               v-model="rows[item.i]"
               item-key="id"
-              :animation="150"
-              class="h-full"
+              class="h-full flex flex-col"
               group="people"
+              :clone="rawClone"
+              :animation="100"
+              direction="vertical"
+              handle=".drag-handle"
+              :disabled="config.editGrid"
             >
               <component
                 v-for="element in rows[item.i]"
@@ -45,7 +62,6 @@
                 :is="element.componentType"
                 v-model:modelValue="element.props"
                 :is-editing-cell="config.editGridCell"
-                class="cursor-move"
               />
             </VueDraggable>
           </div>
@@ -56,7 +72,7 @@
 </template>
 
 <script setup lang="ts">
-import { markRaw, ref, watch } from 'vue'
+import { markRaw, ref, watch, toRaw } from 'vue'
 import { GridLayout, GridItem } from 'vue-grid-layout-v3'
 import { VueDraggable } from 'vue-draggable-plus'
 import { ElInput, ElCheckbox } from 'element-plus'
@@ -108,24 +124,28 @@ const rows = ref<Record<number, DraggableComponent[]>>({
     {
       id: 1,
       componentType: markRaw(UartAtCommand),
-      props: { label: 'Device ID', command: 'AT+ID?', response: 'ID:xxxx', group: 'Device Info' }
+      props: { label: 'Device ID', command: 'AT+ID?', response: 'ID:xxxx' }
     },
     {
       id: 2,
       componentType: markRaw(UartAtCommand),
-      props: { label: 'Version', command: 'AT+VER?', response: 'V1.0.0', group: 'Device Info' }
+      props: { label: 'Version', command: 'AT+VER?', response: 'V1.0.0' }
     },
     {
       id: 3,
       componentType: markRaw(UartAtCommand),
-      props: { label: 'Reset', command: 'AT+RESET', response: 'OK', group: 'Device Info' }
+      props: { label: 'Reset', command: 'AT+RESET', response: 'OK' }
     }
   ],
   1: [
     {
       id: 4,
       componentType: markRaw(UartAtCommand),
-      props: { label: 'Scan WiFi', command: 'AT+WSCAN', response: 'SCAN OK', group: 'WiFi' }
+      props: {
+        label: 'Scan WiFi',
+        command: 'AT+WSCANasdfasdfasdf',
+        response: 'SCAN OKasd fsdaf asdf asdf asdf asdf '
+      }
     },
     {
       id: 5,
@@ -133,8 +153,7 @@ const rows = ref<Record<number, DraggableComponent[]>>({
       props: {
         label: 'Connect WiFi',
         command: 'AT+WCONN=ssid,pwd',
-        response: 'CONN OK',
-        group: 'WiFi'
+        response: 'CONN OK'
       }
     }
   ],
@@ -145,20 +164,23 @@ const rows = ref<Record<number, DraggableComponent[]>>({
       props: {
         label: 'Ping Test',
         command: 'AT+PING=google.com',
-        response: 'PING OK',
-        group: 'Network'
+        response: 'PING OK'
       }
     }
   ]
 })
 
-// The handleUpdate function is no longer needed here as v-model on the component handles it.
+function rawClone(item: DraggableComponent): DraggableComponent {
+  // remove Vue’s proxy wrapper
+  const plain = toRaw(item)
+
+  // return a shallow copy so each widget keeps its own identity
+  return { ...plain }
+}
 </script>
 
 <style scoped>
-/* tiny helper so the placeholder is visible while dragging */
-.ghost {
-  background: rgba(255, 193, 7, 0.35);
-  border: 1px dashed #d97706;
+:deep(.el-check-tag) {
+  padding: 0;
 }
 </style>
