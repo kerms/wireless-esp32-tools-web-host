@@ -320,48 +320,78 @@ watch([
   immediate: true
 });
 
-watch(
-  [() => layoutConf.isMedium, () => store.winAutoLayout],
-  (value) => {
-    if (store.winAutoLayout) {
-      store.winLeft.show = !value[0]
-      win1Ref.value.style.minWidth = ''
-      win1Ref.value.style.maxWidth = ''
-      win2Ref.value.style.minWidth = ''
-      win2Ref.value.style.maxWidth = ''
-      winDataView.show = true
-    }
-  },
-  {
-    immediate: true
+watch(() => winDataView.show, value => {
+  if (!value) {
+    win1Ref.value.style.minWidth = "";
+    win1Ref.value.style.maxWidth = "";
+    win1Ref.value.style.maxHeight = "";
+    win1Ref.value.style.maxHeight = "";
+
+    win2Ref.value.style.minWidth = "";
+    win2Ref.value.style.maxWidth = "";
+    win2Ref.value.style.maxHeight = "";
+    win2Ref.value.style.maxHeight = "";
   }
-)
+});
 
-watch(
-  () => winDataView.show,
-  (value) => {
-    if (!value) {
-      win1Ref.value.style.minWidth = ''
-      win1Ref.value.style.maxWidth = ''
-      win1Ref.value.style.maxHeight = ''
-      win1Ref.value.style.maxHeight = ''
-
-      win2Ref.value.style.minWidth = ''
-      win2Ref.value.style.maxWidth = ''
-      win2Ref.value.style.maxHeight = ''
-      win2Ref.value.style.maxHeight = ''
-    }
+watch(() => store.winRight.show, value => {
+  if (!value && !winDataView.show) {
+    win1Ref.value.style.maxHeight = "";
+    win1Ref.value.style.maxHeight = "";
+    win1Ref.value.style.maxWidth = "";
+    win1Ref.value.style.maxWidth = "";
   }
-)
+});
 
-watch(
-  () => store.winRight.show,
-  (value) => {
-    if (!value && !winDataView.show) {
-      win1Ref.value.style.maxHeight = ''
-      win1Ref.value.style.maxHeight = ''
-      win1Ref.value.style.maxWidth = ''
-      win1Ref.value.style.maxWidth = ''
+const onUartJsonMsg = (msg: api.ApiJsonMsg) => {
+  switch (msg.cmd as WtUartCmd) {
+    case WtUartCmd.GET_BAUD:
+    case WtUartCmd.SET_BAUD:{
+      const uartMsg = msg as IUartMsgBaud;
+      if (uartMsg.baud) {
+        store.setUartBaud(uartMsg.baud)
+      }
+      break;
+    }
+    case WtUartCmd.GET_CONFIG:
+    case WtUartCmd.SET_CONFIG:{
+      const uartMsg = msg as IUartMsgConfig;
+      store.uartConfig.data_bits = uartMsg.data_bits;
+      store.uartConfig.stop_bits = uartMsg.stop_bits;
+      store.uartConfig.parity = uartMsg.parity;
+      break;
+    }
+    case WtUartCmd.GET_DEFAULT_NUM:
+      uartStore.uartNum = (msg as IUartMsgNum).num;
+      uart_get_baud(uartStore.uartNum);
+      uart_get_config(uartStore.uartNum);
+      break;
+    default:
+      if (isDevMode()) {
+        console.log("uart not treated", msg);
+      }
+      break
+  }
+};
+
+const onUartBinaryMsg = (msg: ApiBinaryMsg) => {
+  if (isDevMode()) {
+    console.log("uart", msg);
+  }
+
+  store.addSegment(new Uint8Array(msg.payload), true);
+};
+
+const onClientCtrl = (msg: api.ControlMsg) => {
+  if (msg.type !== api.ControlMsgType.WS_EVENT) {
+    return
+  }
+
+  if (msg.data === ControlEvent.DISCONNECTED) {
+    store.acceptIncomingData = false;
+  } else if (msg.data === ControlEvent.CONNECTED) {
+    updateUartData();
+    store.acceptIncomingData = true;
   }
 };
 
