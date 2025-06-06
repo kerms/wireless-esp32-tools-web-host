@@ -21,14 +21,16 @@
           v-bind="item"
           class="bg-blue-300 rounded-md flex flex-col text-xs p-1"
         >
-          <div class="flex justify-between">
+          <div class="flex justify-between pb-0.5">
+            <el-button text bg size="small" @click="runCommands(item.i)">
             <InlineSvg name="repeat" width="20"></InlineSvg>
+            </el-button>
             <div v-if="config.editGrid">
               <el-input v-model="item.title" size="small" placeholder="Grid Item Title" />
             </div>
             <div
               v-else-if="item.title"
-              class="mb-1 p-1 bg-blue-400 text-white rounded truncate"
+              class="truncate font-bold self-center text-sm"
               :title="item.title"
             >
               {{ item.title }}
@@ -47,12 +49,11 @@
             </el-check-tag>
           </div>
 
-          <div class="bg-amber-500 overflow-y-auto min-h-0 flex-1 flex-col">
+          <div class="bg-gray-200 overflow-y-auto flex flex-col flex-grow">
             <component
               :is="item.widget"
               v-model="rows[item.i]"
               :edit-grid-cell="config.editGridCell"
-              class="bg-amber-500 flex-1 overflow-hidden min-h-0"
             />
           </div>
         </grid-item>
@@ -62,13 +63,18 @@
 </template>
 
 <script setup lang="ts">
-import { markRaw, ref, watch, toRaw } from 'vue'
+import { markRaw, ref, watch, toRaw, onMounted } from 'vue'
 import { GridLayout, GridItem } from 'vue-grid-layout-v3'
 import { VueDraggable } from 'vue-draggable-plus'
-import { ElInput, ElCheckbox } from 'element-plus'
+import { ElInput, ElCheckbox, ElCheckTag, ElButton } from 'element-plus'
 import UartAtCommand from './widgets/uartAtCommand.vue'
 import WidgetLoop from './widgets/widgetLoop.vue'
 import type { DraggableComponent, UartCommandData } from '../types/grid'
+import { useSequentialUart } from '@/composables/useSequentialUart'
+import { isDevMode } from '@/composables/buildMode'
+import textDataViewer from '@/views/text-data-viewer/textDataViewer.vue'
+
+const { sendCommands } = useSequentialUart()
 
 const config = ref({
   editGrid: true,
@@ -97,8 +103,8 @@ const layout = ref([
   {
     x: 0,
     y: 0,
-    w: 4,
-    h: 2,
+    w: 10,
+    h: 10,
     i: 0,
     title: 'Widget A',
     static: false,
@@ -106,10 +112,10 @@ const layout = ref([
     widgetProps: () => ({ rows: rows.value[0] })
   },
   {
-    x: 4,
+    x: 10,
     y: 0,
-    w: 4,
-    h: 3,
+    w: 10,
+    h: 10,
     i: 1,
     title: 'Widget B',
     static: false,
@@ -117,10 +123,10 @@ const layout = ref([
     widgetProps: () => ({ rows: rows.value[1] })
   },
   {
-    x: 8,
-    y: 0,
-    w: 4,
-    h: 2,
+    x: 0,
+    y: 10,
+    w: 10,
+    h: 10,
     i: 2,
     title: 'Widget C',
     static: false,
@@ -179,6 +185,39 @@ const rows = ref<Record<number, DraggableComponent<UartCommandData>[]>>({
     }
   ]
 })
+
+const handleAddItem = (gridIndex: number) => {
+  const newId =
+    Math.max(
+      0,
+      ...Object.values(rows.value)
+        .flat()
+        .map((item) => item.id)
+    ) + 1
+  const newItem: DraggableComponent<UartCommandData> = {
+    id: newId,
+    componentType: markRaw(UartAtCommand),
+    props: {
+      label: 'New Command',
+      command: 'AT+CMD',
+      response: ''
+    }
+  }
+  rows.value[gridIndex].push(newItem)
+}
+
+const runCommands = async (gridIndex: number) => {
+  const commandsToRun = rows.value[gridIndex]
+  if (!commandsToRun) return
+
+  for (const command of commandsToRun) {
+    if (isDevMode()) {
+      console.log('runCommands', command.props.command)
+    }
+    const response = await sendCommands([command.props.command])
+    command.props.response = response[0] || 'No response'
+  }
+}
 
 function rawClone(item: DraggableComponent<UartCommandData>): DraggableComponent<UartCommandData> {
   // remove Vue's proxy wrapper

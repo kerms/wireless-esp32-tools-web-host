@@ -1,7 +1,6 @@
 <template>
   <div class="p-1 border border-gray-300 rounded bg-white text-xs">
     <div v-if="isEditingCell" class="flex">
-      <el-tag size="large" type="success" class="drag-handle mr-1 cursor-move"> = </el-tag>
       <div>
         <div class="mb-1">
           <el-input v-model="model.label" placeholder="Label" size="small">
