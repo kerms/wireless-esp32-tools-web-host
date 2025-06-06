@@ -22,7 +22,8 @@
           class="bg-blue-300 rounded-md flex flex-col text-xs p-1"
         >
           <div class="flex justify-between">
-            <div v-if="config.editGridCell">
+            <InlineSvg name="repeat" width="20"></InlineSvg>
+            <div v-if="config.editGrid">
               <el-input v-model="item.title" size="small" placeholder="Grid Item Title" />
             </div>
             <div
@@ -32,6 +33,8 @@
             >
               {{ item.title }}
             </div>
+            <p v-else></p>
+            <!-- empty space to align the check tag -->
             <el-check-tag
               v-if="config.editGrid"
               :checked="item.static"
@@ -39,31 +42,18 @@
               class="self-center px-1"
               @click="item.static = !item.static"
             >
-              <InlineSvg v-if="item.static" name="lock" width="20"></InlineSvg>
-              <InlineSvg v-else name="lock_open" width="20"></InlineSvg>
+              <InlineSvg v-show="item.static" name="lock" width="20"></InlineSvg>
+              <InlineSvg v-show="!item.static" name="lock_open" width="20"></InlineSvg>
             </el-check-tag>
           </div>
 
           <div class="bg-amber-500 overflow-y-auto min-h-0 flex-1 flex-col">
-            <VueDraggable
+            <component
+              :is="item.widget"
               v-model="rows[item.i]"
-              item-key="id"
-              class="h-full flex flex-col"
-              group="people"
-              :clone="rawClone"
-              :animation="100"
-              direction="vertical"
-              handle=".drag-handle"
-              :disabled="config.editGrid"
-            >
-              <component
-                v-for="element in rows[item.i]"
-                :key="element.id"
-                :is="element.componentType"
-                v-model:modelValue="element.props"
-                :is-editing-cell="config.editGridCell"
-              />
-            </VueDraggable>
+              :edit-grid-cell="config.editGridCell"
+              class="bg-amber-500 flex-1 overflow-hidden min-h-0"
+            />
           </div>
         </grid-item>
       </GridLayout>
@@ -77,18 +67,8 @@ import { GridLayout, GridItem } from 'vue-grid-layout-v3'
 import { VueDraggable } from 'vue-draggable-plus'
 import { ElInput, ElCheckbox } from 'element-plus'
 import UartAtCommand from './widgets/uartAtCommand.vue'
-
-interface UartCommandData {
-  command: string
-  label: string
-  response: string
-}
-
-interface DraggableComponent {
-  id: number
-  componentType: any // Should be UartAtCommand
-  props: UartCommandData
-}
+import WidgetLoop from './widgets/widgetLoop.vue'
+import type { DraggableComponent, UartCommandData } from '../types/grid'
 
 const config = ref({
   editGrid: true,
@@ -114,12 +94,42 @@ watch(
 )
 
 const layout = ref([
-  { x: 0, y: 0, w: 4, h: 2, i: 0, title: 'Widget A', static: false },
-  { x: 4, y: 0, w: 4, h: 3, i: 1, title: 'Widget B', static: false },
-  { x: 8, y: 0, w: 4, h: 2, i: 2, title: 'Widget C', static: false }
+  {
+    x: 0,
+    y: 0,
+    w: 4,
+    h: 2,
+    i: 0,
+    title: 'Widget A',
+    static: false,
+    widget: markRaw(WidgetLoop),
+    widgetProps: () => ({ rows: rows.value[0] })
+  },
+  {
+    x: 4,
+    y: 0,
+    w: 4,
+    h: 3,
+    i: 1,
+    title: 'Widget B',
+    static: false,
+    widget: markRaw(WidgetLoop),
+    widgetProps: () => ({ rows: rows.value[1] })
+  },
+  {
+    x: 8,
+    y: 0,
+    w: 4,
+    h: 2,
+    i: 2,
+    title: 'Widget C',
+    static: false,
+    widget: markRaw(WidgetLoop),
+    widgetProps: () => ({ rows: rows.value[2] })
+  }
 ])
 
-const rows = ref<Record<number, DraggableComponent[]>>({
+const rows = ref<Record<number, DraggableComponent<UartCommandData>[]>>({
   0: [
     {
       id: 1,
@@ -170,8 +180,8 @@ const rows = ref<Record<number, DraggableComponent[]>>({
   ]
 })
 
-function rawClone(item: DraggableComponent): DraggableComponent {
-  // remove Vue’s proxy wrapper
+function rawClone(item: DraggableComponent<UartCommandData>): DraggableComponent<UartCommandData> {
+  // remove Vue's proxy wrapper
   const plain = toRaw(item)
 
   // return a shallow copy so each widget keeps its own identity
