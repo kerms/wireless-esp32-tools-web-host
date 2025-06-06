@@ -23,7 +23,7 @@
         >
           <div class="flex justify-between pb-0.5">
             <el-button text bg size="small" @click="runCommands(item.i)">
-            <InlineSvg name="repeat" width="20"></InlineSvg>
+              <InlineSvg name="repeat" width="20"></InlineSvg>
             </el-button>
             <div v-if="config.editGrid">
               <el-input v-model="item.title" size="small" placeholder="Grid Item Title" />
@@ -73,6 +73,7 @@ import type { DraggableComponent, UartCommandData } from '../types/grid'
 import { useSequentialUart } from '@/composables/useSequentialUart'
 import { isDevMode } from '@/composables/buildMode'
 import textDataViewer from '@/views/text-data-viewer/textDataViewer.vue'
+import { useUartModule } from '@/composables/useUartModule'
 
 const { sendCommands } = useSequentialUart()
 
@@ -98,6 +99,10 @@ watch(
     }
   }
 )
+
+onMounted(() => {
+  useUartModule()
+})
 
 const layout = ref([
   {
@@ -132,6 +137,17 @@ const layout = ref([
     static: false,
     widget: markRaw(WidgetLoop),
     widgetProps: () => ({ rows: rows.value[2] })
+  },
+  {
+    x: 10,
+    y: 10,
+    w: 10,
+    h: 10,
+    i: 3,
+    title: 'Widget D',
+    static: false,
+    widget: markRaw(textDataViewer),
+    widgetProps: () => ({ rows: rows.value[3] })
   }
 ])
 
