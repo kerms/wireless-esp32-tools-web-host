@@ -75,7 +75,7 @@ function ensureUniqueId(evt: any) {
       handle=".drag-handle"
       @add="ensureUniqueId"
     >
-      <div v-for="row in modelValue" :key="row.id" class="flex items-center gap-1 p-1">
+      <div v-for="row in modelValue" :key="row.id" class="flex flex-row items-center">
         <el-tag v-if="editGridCell" size="large" type="success" class="drag-handle cursor-move">
           =
         </el-tag>

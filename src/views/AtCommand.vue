@@ -49,7 +49,7 @@
             </el-check-tag>
           </div>
 
-          <div class="bg-gray-200 overflow-y-auto flex flex-col flex-grow">
+          <div class="bg-white overflow-y-auto flex flex-col flex-grow">
             <component
               :is="item.widget"
               v-model="rows[item.i]"
