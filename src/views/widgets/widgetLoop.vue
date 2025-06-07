@@ -2,14 +2,40 @@
 import { VueDraggable } from 'vue-draggable-plus'
 import type { DraggableComponent } from '../../types/grid'
 import { ElButton, ElIcon } from 'element-plus'
-import { Delete } from '@element-plus/icons-vue'
+import WidgetLoop from '@/views/widgets/widgetLoop.vue'
+import { markRaw } from 'vue'
+import type { UartCommandData } from '@/types/grid'
 
 /* ---------------- props & model ----------------------------------- */
 const modelValue = defineModel<DraggableComponent[]>({ required: true })
 defineProps<{
   editGridCell: boolean
 }>()
-const emit = defineEmits(['add-item'])
+
+defineOptions({
+  name: 'WidgetLoop',
+  widgetIconName: 'repeat'
+})
+
+const handleAddItem = (gridIndex: number) => {
+  const newId =
+    Math.max(
+      0,
+      ...Object.values(modelValue.value)
+        .flat()
+        .map((item) => item.id)
+    ) + 1
+  const newItem: DraggableComponent<UartCommandData> = {
+    id: newId,
+    componentType: markRaw(WidgetLoop),
+    props: {
+      label: 'New Command',
+      command: 'AT+CMD',
+      response: ''
+    }
+  }
+  modelValue.value.push(newItem)
+}
 
 function deleteItem(id: number) {
   const index = modelValue.value.findIndex((item) => item.id === id)
@@ -58,7 +84,7 @@ function rawClone(item: DraggableComponent): DraggableComponent {
       </div>
     </VueDraggable>
     <div v-if="editGridCell" class="bg-gray-200 p-0.5">
-      <el-button type="primary" size="small" @click="emit('add-item')"> Add Item </el-button>
+      <el-button type="primary" size="small"> Add Item </el-button>
     </div>
   </div>
 </template>

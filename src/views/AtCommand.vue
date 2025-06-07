@@ -23,7 +23,7 @@
         >
           <div class="flex justify-between pb-0.5">
             <el-button text bg size="small" @click="runCommands(item.i)">
-              <InlineSvg name="repeat" width="20"></InlineSvg>
+              <InlineSvg :name="item.widget.widgetIconName" width="20"></InlineSvg>
             </el-button>
             <div v-if="config.editGrid">
               <el-input v-model="item.title" size="small" placeholder="Grid Item Title" />
@@ -147,11 +147,11 @@ const layout = ref([
     title: 'Widget D',
     static: false,
     widget: markRaw(textDataViewer),
-    widgetProps: () => ({ rows: rows.value[3] })
+    widgetProps: () => ({ })
   }
 ])
 
-const rows = ref<Record<number, DraggableComponent<UartCommandData>[]>>({
+const rows = ref<Record<number, DraggableComponent<any>[]>>({
   0: [
     {
       id: 1,
