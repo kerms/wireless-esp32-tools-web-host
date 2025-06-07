@@ -12,7 +12,7 @@
     <div v-show="store.winLeft.show && (winDataView.show || store.winRight.show)" ref="firstWinResizeRef"></div>
 
     <div v-show="winDataView.show" class="flex flex-col flex-grow overflow-hidden p-2">
-      <textDataViewer></textDataViewer>
+      <textDataViewer :showDataConfig="store.winLeft.show"></textDataViewer>
     </div>
 
     <div v-show="winDataView.show && store.winRight.show" ref="thirdWinResizeRef"></div>

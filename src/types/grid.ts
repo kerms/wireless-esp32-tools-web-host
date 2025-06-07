@@ -18,7 +18,7 @@ export interface WidgetItem {
   w: number
   h: number
   i: number
-  title: string
+  name: string
   static: boolean
   widget: Component | string
   widgetIconName?: string

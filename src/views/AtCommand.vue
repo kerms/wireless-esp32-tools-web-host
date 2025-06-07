@@ -1,9 +1,23 @@
 <template>
-  <div class="h-screen flex flex-col">
-    <div class="flex items-center gap-2 bg-gray-0 p-2">
+  <div class="">
+  <div v-show="config.showOptions" class="flex h-40 overflow-y-auto">
+    <div class="flex flex-col">
       <el-checkbox v-model="config.editGrid" border>Edit Grid</el-checkbox>
       <el-checkbox v-model="config.editGridCell" border>Edit Grid Cell</el-checkbox>
     </div>
+    <div>
+      <!-- <div
+        class="droppable-element"
+        draggable="true"
+        unselectable="on"
+        @drag="drag"
+        @dragend="dragEnd"
+      >
+        Droppable Element (Drag me!)
+      </div> -->
+    </div>
+  </div>
+  <div class="h-screen flex flex-col w-full">
     <div class="flex-1 bg-gray-100 overflow-auto min-h-0">
       <GridLayout
         v-model:layout="layout"
@@ -24,14 +38,13 @@
           <div class="flex justify-between pb-0.5">
             <InlineSvg :name="item.widget.widgetIconName" width="20"></InlineSvg>
             <div v-if="config.editGrid" class="w-full">
-              <el-input v-model="item.title" size="small" placeholder="Grid Item Title" />
+              <el-input v-model="item.name" size="small" placeholder="Grid Item name" />
             </div>
             <div
-              v-else-if="item.title"
+              v-else-if="item.name"
               class="truncate font-bold self-center text-center text-sm w-full"
-              :title="item.title"
             >
-              {{ item.title }}
+              {{ item.name }}
             </div>
             <p v-else></p>
             <!-- empty space to align the check tag -->
@@ -59,6 +72,10 @@
       </GridLayout>
     </div>
   </div>
+</div>
+  <teleport to="#nav-right-slot">
+    <ElCheckTag :checked="config.showOptions" type="primary" @click="config.showOptions = !config.showOptions">Edit Grid</ElCheckTag>
+  </teleport>
 </template>
 
 <script setup lang="ts">
@@ -80,7 +97,8 @@ const { sendCommands } = useSequentialUart()
 
 const config = ref({
   editGrid: true,
-  editGridCell: false
+  editGridCell: false,
+  showOptions: true,
 })
 
 watch(
@@ -112,7 +130,7 @@ const layout = ref([
     w: 10,
     h: 10,
     i: 0,
-    title: 'Widget A',
+    name: 'Widget A',
     static: false,
     widget: markRaw(WidgetLoop),
     widgetProps: [
@@ -139,7 +157,7 @@ const layout = ref([
     w: 10,
     h: 10,
     i: 1,
-    title: 'Widget B',
+    name: 'Widget B',
     static: false,
     widget: markRaw(WidgetLoop),
     widgetProps: [
@@ -169,7 +187,7 @@ const layout = ref([
     w: 10,
     h: 10,
     i: 2,
-    title: 'Widget C',
+    name: 'Widget C',
     static: false,
     widget: markRaw(WidgetLoop),
     widgetProps: [
@@ -190,7 +208,7 @@ const layout = ref([
     w: 10,
     h: 10,
     i: 3,
-    title: 'Widget D',
+    name: 'Widget D',
     static: false,
     widget: markRaw(textDataViewer),
     widgetProps: []
