@@ -21,7 +21,7 @@
     "element-plus": "^2.8.1",
     "mitt": "^3.0.1",
     "pinia": "^2.1.7",
-    "vue": "^3.4.21",
+    "vue": "^3.5.16",
     "vue-draggable-plus": "^0.4.1",
     "vue-grid-layout-v3": "^3.1.2",
     "vue-i18n": "^9.10.2",

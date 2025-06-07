@@ -1,13 +1,17 @@
 <script setup lang="ts">
 import { VueDraggable } from 'vue-draggable-plus'
-import type { DraggableComponent } from '../../types/grid'
+import type { DraggableComponent, WidgetItem } from '../../types/grid'
 import { ElButton, ElIcon } from 'element-plus'
 import { markRaw } from 'vue'
 import type { UartCommandData } from '@/types/grid'
 import UartAtCommand from '@/views/widgets/uartAtCommand.vue'
+import { useWsStore } from '@/stores/websocket'
+import { globalNotify } from '@/composables/notification'
+import { isDevMode } from '@/composables/buildMode'
+import { useSequentialUart } from '@/composables/useSequentialUart'
 
 /* ---------------- props & model ----------------------------------- */
-const modelValue = defineModel<DraggableComponent[]>({ required: true })
+const modelValue = defineModel<WidgetItem>({ required: true })
 defineProps<{
   editGridCell: boolean
 }>()
@@ -34,13 +38,13 @@ const handleAddItem = () => {
       response: ''
     }
   }
-  modelValue.value.push(newItem)
+  modelValue.value.widgetProps.push(newItem)
 }
 
 function deleteItem(id: number) {
-  const index = modelValue.value.findIndex((item) => item.id === id)
+  const index = modelValue.value.widgetProps.findIndex((item) => item.id === id)
   if (index !== -1) {
-    modelValue.value.splice(index, 1)
+    modelValue.value.widgetProps.splice(index, 1)
   }
 }
 
@@ -50,7 +54,7 @@ function rawClone(item: DraggableComponent): DraggableComponent {
 }
 
 function ensureUniqueId(evt: any) {
-  const arr = modelValue.value
+  const arr = modelValue.value.widgetProps
   const moved = arr[evt.newIndex]       // item that just arrived
   const hasDuplicate = arr.filter(i => i.id === moved.id).length > 1
   if (hasDuplicate) {
@@ -60,12 +64,31 @@ function ensureUniqueId(evt: any) {
   }
 }
 
+const { sendCommands } = useSequentialUart()
+
+const runCommands = async () => {
+  if (useWsStore().state !== 'CONNECTED') {
+    globalNotify('Device not connected', 'error');
+    return
+  }
+  const commandsToRun = modelValue.value.widgetProps
+  if (!commandsToRun) return
+
+  for (const command of commandsToRun) {
+    if (isDevMode()) {
+      console.log('runCommands', command.props.command)
+    }
+    const response = await sendCommands([command.props.command])
+    command.props.response = response[0] || 'No response'
+  }
+}
+
 </script>
 
 <template>
   <div class="flex flex-col h-full">
     <VueDraggable
-      v-model="modelValue"
+      v-model="modelValue.widgetProps"
       item-key="id"
       class="flex-1 min-h-0 overflow-y-auto"
       group="people"
@@ -75,7 +98,7 @@ function ensureUniqueId(evt: any) {
       handle=".drag-handle"
       @add="ensureUniqueId"
     >
-      <div v-for="row in modelValue" :key="row.id" class="flex flex-row items-center">
+      <div v-for="row in modelValue.widgetProps" :key="row.id" class="flex flex-row items-center">
         <el-tag v-if="editGridCell" size="large" type="success" class="drag-handle cursor-move">
           =
         </el-tag>
@@ -100,4 +123,9 @@ function ensureUniqueId(evt: any) {
       <el-button type="primary" size="small" @click="handleAddItem"> Add Item </el-button>
     </div>
   </div>
+  <teleport defer :to="`#widget-slot-${modelValue.i}`" :disabled="editGridCell">
+    <el-button text bg size="small" @click="runCommands">
+      <InlineSvg name="play" width="20"></InlineSvg>
+    </el-button>
+  </teleport>
 </template>

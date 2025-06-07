@@ -22,15 +22,13 @@
           class="bg-blue-300 rounded-md flex flex-col text-xs p-1"
         >
           <div class="flex justify-between pb-0.5">
-            <el-button text bg size="small" @click="runCommands(item.i)">
-              <InlineSvg :name="item.widget.widgetIconName" width="20"></InlineSvg>
-            </el-button>
-            <div v-if="config.editGrid">
+            <InlineSvg :name="item.widget.widgetIconName" width="20"></InlineSvg>
+            <div v-if="config.editGrid" class="w-full">
               <el-input v-model="item.title" size="small" placeholder="Grid Item Title" />
             </div>
             <div
               v-else-if="item.title"
-              class="truncate font-bold self-center text-sm"
+              class="truncate font-bold self-center text-center text-sm w-full"
               :title="item.title"
             >
               {{ item.title }}
@@ -47,13 +45,14 @@
               <InlineSvg v-show="item.static" name="lock" width="20"></InlineSvg>
               <InlineSvg v-show="!item.static" name="lock_open" width="20"></InlineSvg>
             </el-check-tag>
+              <div v-show="!config.editGrid" :id="`widget-slot-${item.i}`"></div>
           </div>
 
           <div class="bg-white overflow-y-auto flex flex-col flex-grow">
             <component
               :is="item.widget"
-              v-model="rows[item.i]"
-              :edit-grid-cell="config.editGridCell"
+              v-model="layout[item.i]"
+              :editGridCell="config.editGridCell"
             />
           </div>
         </grid-item>
@@ -74,6 +73,8 @@ import { useSequentialUart } from '@/composables/useSequentialUart'
 import { isDevMode } from '@/composables/buildMode'
 import textDataViewer from '@/views/text-data-viewer/textDataViewer.vue'
 import { useUartModule } from '@/composables/useUartModule'
+import { useWsStore } from '@/stores/websocket'
+import { globalNotify } from '@/composables/notification'
 
 const { sendCommands } = useSequentialUart()
 
@@ -114,7 +115,23 @@ const layout = ref([
     title: 'Widget A',
     static: false,
     widget: markRaw(WidgetLoop),
-    widgetProps: () => ({ rows: rows.value[0] })
+    widgetProps: [
+    {
+      id: 1,
+      componentType: markRaw(UartAtCommand),
+      props: { label: 'Device ID', command: 'AT+ID?', response: 'ID:xxxx' }
+    },
+    {
+      id: 2,
+      componentType: markRaw(UartAtCommand),
+      props: { label: 'Version', command: 'AT+VER?', response: 'V1.0.0' }
+    },
+    {
+      id: 3,
+      componentType: markRaw(UartAtCommand),
+      props: { label: 'Reset', command: 'AT+RESET', response: 'OK' }
+    }
+  ]
   },
   {
     x: 10,
@@ -125,7 +142,26 @@ const layout = ref([
     title: 'Widget B',
     static: false,
     widget: markRaw(WidgetLoop),
-    widgetProps: () => ({ rows: rows.value[1] })
+    widgetProps: [
+    {
+      id: 1,
+      componentType: markRaw(UartAtCommand),
+      props: {
+        label: 'Scan WiFi',
+        command: 'AT+WSCANasdfasdfasdf',
+        response: 'SCAN OKasd fsdaf asdf asdf asdf asdf '
+      }
+    },
+    {
+      id: 2,
+      componentType: markRaw(UartAtCommand),
+      props: {
+        label: 'Connect WiFi',
+        command: 'AT+WCONN=ssid,pwd',
+        response: 'CONN OK'
+      }
+    }
+  ]
   },
   {
     x: 0,
@@ -136,7 +172,17 @@ const layout = ref([
     title: 'Widget C',
     static: false,
     widget: markRaw(WidgetLoop),
-    widgetProps: () => ({ rows: rows.value[2] })
+    widgetProps: [
+    {
+      id: 1,
+      componentType: markRaw(UartAtCommand),
+      props: {
+        label: 'Ping Test',
+        command: 'AT+PING=google.com',
+        response: 'PING OK'
+      }
+    }
+  ]
   },
   {
     x: 10,
@@ -147,7 +193,7 @@ const layout = ref([
     title: 'Widget D',
     static: false,
     widget: markRaw(textDataViewer),
-    widgetProps: () => ({ })
+    widgetProps: []
   }
 ])
 
@@ -202,27 +248,11 @@ const rows = ref<Record<number, DraggableComponent<any>[]>>({
   ]
 })
 
-const handleAddItem = (gridIndex: number) => {
-  const newId =
-    Math.max(
-      0,
-      ...Object.values(rows.value)
-        .flat()
-        .map((item) => item.id)
-    ) + 1
-  const newItem: DraggableComponent<UartCommandData> = {
-    id: newId,
-    componentType: markRaw(UartAtCommand),
-    props: {
-      label: 'New Command',
-      command: 'AT+CMD',
-      response: ''
-    }
-  }
-  rows.value[gridIndex].push(newItem)
-}
-
 const runCommands = async (gridIndex: number) => {
+  if (useWsStore().state !== 'CONNECTED') {
+    globalNotify('Device not connected', 'error');
+    return
+  }
   const commandsToRun = rows.value[gridIndex]
   if (!commandsToRun) return
 
@@ -234,7 +264,6 @@ const runCommands = async (gridIndex: number) => {
     command.props.response = response[0] || 'No response'
   }
 }
-
 </script>
 
 <style scoped>
@@ -242,3 +271,4 @@ const runCommands = async (gridIndex: number) => {
   padding: 0;
 }
 </style>
+
