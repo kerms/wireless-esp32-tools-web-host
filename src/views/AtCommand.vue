@@ -171,7 +171,7 @@ const rows = ref<Record<number, DraggableComponent<any>[]>>({
   ],
   1: [
     {
-      id: 4,
+      id: 1,
       componentType: markRaw(UartAtCommand),
       props: {
         label: 'Scan WiFi',
@@ -180,7 +180,7 @@ const rows = ref<Record<number, DraggableComponent<any>[]>>({
       }
     },
     {
-      id: 5,
+      id: 2,
       componentType: markRaw(UartAtCommand),
       props: {
         label: 'Connect WiFi',
@@ -191,7 +191,7 @@ const rows = ref<Record<number, DraggableComponent<any>[]>>({
   ],
   2: [
     {
-      id: 6,
+      id: 1,
       componentType: markRaw(UartAtCommand),
       props: {
         label: 'Ping Test',
@@ -235,13 +235,6 @@ const runCommands = async (gridIndex: number) => {
   }
 }
 
-function rawClone(item: DraggableComponent<UartCommandData>): DraggableComponent<UartCommandData> {
-  // remove Vue's proxy wrapper
-  const plain = toRaw(item)
-
-  // return a shallow copy so each widget keeps its own identity
-  return { ...plain }
-}
 </script>
 
 <style scoped>

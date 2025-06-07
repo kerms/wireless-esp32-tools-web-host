@@ -2,9 +2,9 @@
 import { VueDraggable } from 'vue-draggable-plus'
 import type { DraggableComponent } from '../../types/grid'
 import { ElButton, ElIcon } from 'element-plus'
-import WidgetLoop from '@/views/widgets/widgetLoop.vue'
 import { markRaw } from 'vue'
 import type { UartCommandData } from '@/types/grid'
+import UartAtCommand from '@/views/widgets/uartAtCommand.vue'
 
 /* ---------------- props & model ----------------------------------- */
 const modelValue = defineModel<DraggableComponent[]>({ required: true })
@@ -17,7 +17,7 @@ defineOptions({
   widgetIconName: 'repeat'
 })
 
-const handleAddItem = (gridIndex: number) => {
+const handleAddItem = () => {
   const newId =
     Math.max(
       0,
@@ -27,7 +27,7 @@ const handleAddItem = (gridIndex: number) => {
     ) + 1
   const newItem: DraggableComponent<UartCommandData> = {
     id: newId,
-    componentType: markRaw(WidgetLoop),
+    componentType: markRaw(UartAtCommand),
     props: {
       label: 'New Command',
       command: 'AT+CMD',
@@ -48,6 +48,18 @@ function deleteItem(id: number) {
 function rawClone(item: DraggableComponent): DraggableComponent {
   return { ...item } // already plain in parent
 }
+
+function ensureUniqueId(evt: any) {
+  const arr = modelValue.value
+  const moved = arr[evt.newIndex]       // item that just arrived
+  const hasDuplicate = arr.filter(i => i.id === moved.id).length > 1
+  if (hasDuplicate) {
+    // e.g. give it the next free integer
+    const max = Math.max(...arr.map(i => i.id))
+    moved.id = max + 1
+  }
+}
+
 </script>
 
 <template>
@@ -61,6 +73,7 @@ function rawClone(item: DraggableComponent): DraggableComponent {
       :animation="100"
       direction="vertical"
       handle=".drag-handle"
+      @add="ensureUniqueId"
     >
       <div v-for="row in modelValue" :key="row.id" class="flex items-center gap-1 p-1">
         <el-tag v-if="editGridCell" size="large" type="success" class="drag-handle cursor-move">
@@ -84,7 +97,7 @@ function rawClone(item: DraggableComponent): DraggableComponent {
       </div>
     </VueDraggable>
     <div v-if="editGridCell" class="bg-gray-200 p-0.5">
-      <el-button type="primary" size="small"> Add Item </el-button>
+      <el-button type="primary" size="small" @click="handleAddItem"> Add Item </el-button>
     </div>
   </div>
 </template>
