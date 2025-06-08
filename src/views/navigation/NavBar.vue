@@ -13,12 +13,7 @@
         <InlineSvg name="favicon" class="h-5 lg:h-8"></InlineSvg>
       </router-link>
 
-
-<!--      <a class="text-3xl px-4 font-bold leading-none" href="/">-->
-<!--        <InlineSvg name="home" class="h-10"></InlineSvg>-->
-<!--      </a>-->
-<!--      <router-link to="/" class="flex items-center text-sm text-blue-600 font-bold">主页</router-link>-->
-<!--      <a class="flex items-center text-sm text-blue-600 font-bold" href="/">主页6</a>-->
+      <div id="nav-right-slot"></div>
 
       <div class="flex pt-0.5 sm:pt-1 ml-4 text-xs items-center sm:hidden">
         <router-link :to="route.fullPath">{{ $route.meta.title }}</router-link>

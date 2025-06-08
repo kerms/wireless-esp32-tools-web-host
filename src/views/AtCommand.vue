@@ -37,6 +37,7 @@
         >
           <div class="flex justify-between pb-0.5">
             <InlineSvg :name="item.widget.widgetIconName" width="20"></InlineSvg>
+            <div :id="`tp-widget-before-${item.i}`"></div>
             <div v-if="config.editGrid" class="w-full">
               <el-input v-model="item.name" size="small" placeholder="Grid Item name" />
             </div>
@@ -58,7 +59,7 @@
               <InlineSvg v-show="item.static" name="lock" width="20"></InlineSvg>
               <InlineSvg v-show="!item.static" name="lock_open" width="20"></InlineSvg>
             </el-check-tag>
-              <div v-show="!config.editGrid" :id="`widget-slot-${item.i}`"></div>
+              <div v-show="!config.editGrid" :id="`tp-widget-${item.i}`"></div>
           </div>
 
           <div class="bg-white overflow-y-auto flex flex-col flex-grow">
