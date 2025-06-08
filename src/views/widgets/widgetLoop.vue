@@ -226,7 +226,7 @@ onMounted(() => {
   </div>
   <teleport defer :to="`#tp-widget-before-${modelValue.i}`">
     <el-button plain size="small" @click="active = !active" :type="active ? 'success' : 'info'">
-        Auto {{ intervalMS }}ms
+        {{ intervalMS }}ms
     </el-button>
   </teleport>
   <teleport defer :to="`#tp-widget-${modelValue.i}`">
