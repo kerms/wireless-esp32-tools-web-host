@@ -68,9 +68,7 @@ const handleAddItem = () => {
   const newId =
     Math.max(
       0,
-      ...Object.values(modelValue.value)
-        .flat()
-        .map((item) => item.id)
+      ...modelValue.value.widgetProps.map((item) => item.id)
     ) + 1
   const newItem: DraggableComponent<UartCommandData> = {
     id: newId,
