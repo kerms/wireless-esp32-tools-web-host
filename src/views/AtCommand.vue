@@ -42,10 +42,14 @@
             >Add to Grid</el-button
           >
         </div>
+        <div class="flex flex-col items-start gap-2 border-l pl-4">
+          <el-button @click="exportSettings" size="small">Export Settings</el-button>
+          <el-button @click="importSettings" size="small">Import Settings</el-button>
+        </div>
       </div>
     </div>
     <div ref="gridWrapper" class="flex-1 flex flex-col w-full min-h-0">
-      <div class="flex-1 bg-gray-100 overflow-auto min-h-0">
+      <div class="flex-1 bg-gray-100 overflow-y-auto min-h-0">
         <GridLayout
           ref="gridlayout"
           v-model:layout="layout"
@@ -70,7 +74,7 @@
             <template v-if="String(item.i) !== dropId">
               <div class="flex justify-between pb-0.5">
                 <InlineSvg :name="item.widget.widgetIconName" width="20"></InlineSvg>
-                <el-button v-show="config.editGrid" type="danger" size="small" class="self-center px-1" @click="deleteWidget(item.i)">
+                <el-button v-show="config.editGrid" type="danger" size="small" class="self-center px-1" @click="deleteWidget(index)">
                   <InlineSvg name="close" width="20"></InlineSvg>
                 </el-button>
                 <div :id="`tp-widget-before-${item.i}`"></div>
@@ -133,6 +137,12 @@ import textDataViewer from '@/views/text-data-viewer/textDataViewer.vue'
 import { useUartModule } from '@/composables/useUartModule'
 import { useWsStore } from '@/stores/websocket'
 import { globalNotify } from '@/composables/notification'
+
+const componentMap: { [key: string]: any } = {
+  WidgetLoop,
+  textDataViewer,
+  UartAtCommand
+}
 
 const gridlayout = ref<InstanceType<typeof GridLayout> | null>(null)
 const gridWrapper = ref<HTMLElement | null>(null)
@@ -373,6 +383,106 @@ const addUartViewWidget = () => {
 
 const deleteWidget = (index: number) => {
   layout.value.splice(index, 1)
+}
+
+const getComponentName = (component: any): string | null => {
+  const rawComponent = toRaw(component)
+  for (const name in componentMap) {
+    if (componentMap[name] === rawComponent) {
+      return name
+    }
+  }
+  return null
+}
+
+const exportSettings = () => {
+  try {
+    const layoutToSave = toRaw(layout.value).map((item) => {
+      const rawItem = toRaw(item)
+      return {
+        ...rawItem,
+        widget: getComponentName(rawItem.widget),
+        widgetProps: rawItem.widgetProps?.map((prop: any) => {
+          const rawProp = toRaw(prop)
+          return {
+            ...rawProp,
+            componentType: getComponentName(rawProp.componentType)
+          }
+        })
+      }
+    })
+
+    const dataStr = JSON.stringify(layoutToSave, null, 2)
+    const dataUri = 'data:application/json;charset=utf-8,' + encodeURIComponent(dataStr)
+
+    const exportFileDefaultName = 'at-command-settings.json'
+
+    const linkElement = document.createElement('a')
+    linkElement.setAttribute('href', dataUri)
+    linkElement.setAttribute('download', exportFileDefaultName)
+    linkElement.click()
+    globalNotify('Settings exported successfully.', 'success')
+  } catch (error) {
+    console.error('Failed to export settings:', error)
+    globalNotify('Failed to export settings.', 'error')
+  }
+}
+
+const importSettings = () => {
+  const input = document.createElement('input')
+  input.type = 'file'
+  input.accept = '.json'
+  input.onchange = (e) => {
+    const file = (e.target as HTMLInputElement).files?.[0]
+    if (!file) return
+
+    const reader = new FileReader()
+    reader.onload = (event) => {
+      try {
+        const fileContent = event.target?.result as string
+        const parsedLayout = JSON.parse(fileContent)
+
+        // Basic validation
+        if (!Array.isArray(parsedLayout)) {
+          throw new Error('Invalid format: expected an array of widgets.')
+        }
+
+        const newLayout = parsedLayout
+          .map((item: any) => {
+            if (item.widget && componentMap[item.widget]) {
+              item.widget = markRaw(componentMap[item.widget])
+            } else {
+              console.warn(`Unknown widget type "${item.widget}" during import. Skipping item.`)
+              return null
+            }
+
+            if (item.widgetProps) {
+              item.widgetProps.forEach((prop: any) => {
+                if (prop.componentType && componentMap[prop.componentType]) {
+                  prop.componentType = markRaw(componentMap[prop.componentType])
+                } else if (prop.componentType) {
+                  console.warn(
+                    `Unknown componentType "${prop.componentType}" for widget "${item.name}". It will be ignored.`
+                  )
+                  prop.componentType = null
+                }
+              })
+              item.widgetProps = item.widgetProps.filter((prop: any) => prop.componentType)
+            }
+            return item
+          })
+          .filter(Boolean) // remove null items
+
+        layout.value = newLayout
+        globalNotify('Settings imported successfully.', 'success')
+      } catch (error: any) {
+        console.error('Failed to import settings:', error)
+        globalNotify(`Failed to import settings: ${error.message}`, 'error')
+      }
+    }
+    reader.readAsText(file)
+  }
+  input.click()
 }
 
 const layout = ref<any[]>([
