@@ -1,9 +1,11 @@
 <template>
   <div class="flex flex-col h-screen">
-    <div v-show="config.showOptions" class="flex h-40 overflow-y-auto">
-      <div class="flex flex-col">
-        <el-checkbox v-model="config.editGrid" border>Edit Grid</el-checkbox>
-        <el-checkbox v-model="config.editGridCell" border>Edit Grid Cell</el-checkbox>
+    <div v-show="config.showOptions" class="flex h-40 overflow-y-auto m-2">
+      <div class="flex flex-col gap-2">
+        <el-checkbox v-model="config.editGrid" border class="w-full">Edit Grid</el-checkbox>
+        <el-checkbox v-model="config.editGridCell" border class="w-full"
+          >Edit Grid Cell</el-checkbox
+        >
       </div>
       <div class="ml-4 flex gap-4">
         <div class="flex flex-col items-center">
@@ -43,8 +45,13 @@
           >
         </div>
         <div class="flex flex-col items-start gap-2 border-l pl-4">
-          <el-button @click="exportSettings" size="small">Export Settings</el-button>
-          <el-button @click="importSettings" size="small">Import Settings</el-button>
+          <div><el-button @click="exportSettings" size="small">Export Settings</el-button></div>
+          <div><el-button @click="importSettings" size="small">Import Settings</el-button></div>
+          <div>
+            <el-button type="danger" @click="resetToDefault" size="small"
+              >Reset to Default</el-button
+            >
+          </div>
         </div>
       </div>
     </div>
@@ -127,7 +134,7 @@
 import { markRaw, ref, watch, toRaw, onMounted, onBeforeUnmount, computed } from 'vue'
 import { GridLayout, GridItem } from 'vue-grid-layout-v3'
 import { VueDraggable } from 'vue-draggable-plus'
-import { ElInput, ElCheckbox, ElCheckTag, ElButton } from 'element-plus'
+import { ElInput, ElCheckbox, ElCheckTag, ElButton, ElMessageBox } from 'element-plus'
 import UartAtCommand from './widgets/uartAtCommand.vue'
 import WidgetLoop from './widgets/widgetLoop.vue'
 import type { DraggableComponent, UartCommandData } from '../types/grid'
@@ -202,6 +209,7 @@ function syncMousePosition(event: MouseEvent) {
 }
 
 onMounted(() => {
+  loadLayoutFromLocalStorage()
   useUartModule()
   document.addEventListener('dragover', syncMousePosition)
 })
@@ -485,7 +493,7 @@ const importSettings = () => {
   input.click()
 }
 
-const layout = ref<any[]>([
+const getDefaultLayout = () => [
   {
     x: 0,
     y: 0,
@@ -575,7 +583,9 @@ const layout = ref<any[]>([
     widget: markRaw(textDataViewer),
     widgetProps: []
   }
-])
+]
+
+const layout = ref<any[]>(getDefaultLayout())
 
 const rows = ref<Record<number, DraggableComponent<any>[]>>({
   0: [
@@ -627,6 +637,100 @@ const rows = ref<Record<number, DraggableComponent<any>[]>>({
     }
   ]
 })
+
+const saveLayoutToLocalStorage = () => {
+  try {
+    const layoutToSave = toRaw(layout.value).map((item) => {
+      const rawItem = toRaw(item)
+      return {
+        ...rawItem,
+        widget: getComponentName(rawItem.widget),
+        widgetProps: rawItem.widgetProps?.map((prop: any) => {
+          const rawProp = toRaw(prop)
+          return {
+            ...rawProp,
+            componentType: getComponentName(rawProp.componentType)
+          }
+        })
+      }
+    })
+    localStorage.setItem('at-command-layout', JSON.stringify(layoutToSave))
+  } catch (error) {
+    console.error('Failed to save layout to localStorage:', error)
+  }
+}
+
+const loadLayoutFromLocalStorage = () => {
+  const savedLayoutJSON = localStorage.getItem('at-command-layout')
+  if (!savedLayoutJSON) return
+
+  try {
+    const parsedLayout = JSON.parse(savedLayoutJSON)
+
+    // Basic validation
+    if (!Array.isArray(parsedLayout)) {
+      throw new Error('Invalid format in localStorage: expected an array of widgets.')
+    }
+
+    const newLayout = parsedLayout
+      .map((item: any) => {
+        if (item.widget && componentMap[item.widget]) {
+          item.widget = markRaw(componentMap[item.widget])
+        } else {
+          console.warn(`Unknown widget type "${item.widget}" from localStorage. Skipping item.`)
+          return null
+        }
+
+        if (item.widgetProps) {
+          item.widgetProps.forEach((prop: any) => {
+            if (prop.componentType && componentMap[prop.componentType]) {
+              prop.componentType = markRaw(componentMap[prop.componentType])
+            } else if (prop.componentType) {
+              console.warn(
+                `Unknown componentType "${prop.componentType}" for widget "${item.name}" from localStorage. It will be ignored.`
+              )
+              prop.componentType = null
+            }
+          })
+          item.widgetProps = item.widgetProps.filter((prop: any) => prop.componentType)
+        }
+        return item
+      })
+      .filter(Boolean) // remove null items
+
+    layout.value = newLayout
+    globalNotify('Settings restored from last session.', 'success')
+  } catch (error: any) {
+    console.error('Failed to load layout from localStorage:', error)
+    globalNotify(`Failed to load settings from localStorage: ${error.message}`, 'error')
+    localStorage.removeItem('at-command-layout')
+  }
+}
+
+const resetToDefault = () => {
+  ElMessageBox.confirm(
+    'This will reset your layout to the default settings. Are you sure?',
+    'Warning',
+    {
+      confirmButtonText: 'OK',
+      cancelButtonText: 'Cancel',
+      type: 'warning'
+    }
+  )
+    .then(() => {
+      layout.value = getDefaultLayout()
+      globalNotify('Layout reset to default.', 'success')
+    })
+    .catch(() => {
+      globalNotify('Layout reset cancelled.', 'info')
+    })
+}
+
+watch(
+  layout,
+  throttle(() => saveLayoutToLocalStorage(), 1000),
+  { deep: true }
+)
 
 </script>
 
