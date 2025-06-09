@@ -1,18 +1,18 @@
 <template>
   <div class="flex flex-col h-screen">
-    <div v-show="widgetStore.showOptions" class="flex h-40 overflow-y-auto m-2">
-      <div class="flex flex-col gap-2">
-        <el-checkbox v-model="widgetStore.editGrid" border class="w-full">{{
-          translate('widget.editGrid')
-        }}</el-checkbox>
-        <el-checkbox v-model="widgetStore.editCell" border class="w-full">{{
-          translate('widget.editCell')
-        }}</el-checkbox>
-      </div>
-      <div class="ml-4 flex gap-4">
+    <div v-show="widgetStore.showOptions" class="flex h-32 overflow-y-auto m-2">
+      <div class="flex gap-4">
+        <div class="flex flex-col gap-2 border-r pr-4">
+          <el-checkbox v-model="widgetStore.editGrid" border class="w-full">{{
+            translate('widget.editGrid')
+          }}</el-checkbox>
+          <el-checkbox v-model="widgetStore.editCell" border class="w-full">{{
+            translate('widget.editCell')
+          }}</el-checkbox>
+        </div>
         <div class="flex flex-col items-center">
           <div
-            class="w-40 h-24 bg-gray-200 border-2 border-dashed rounded-md p-2 flex flex-col justify-center items-center text-center cursor-move"
+            class="w-40 h-24 bg-gray-200 border-2 rounded-md p-2 flex flex-col justify-center items-center text-center cursor-move"
             draggable="true"
             @dragstart="dragStart('loop', $event)"
             @drag="drag"
@@ -27,7 +27,7 @@
         </div>
         <div class="flex flex-col items-center">
           <div
-            class="w-40 h-24 bg-gray-200 border-2 border-dashed rounded-md p-2 flex flex-col justify-center items-center text-center"
+            class="w-40 h-24 bg-gray-200 border-2 rounded-md p-2 flex flex-col justify-center items-center text-center"
             :class="{
               'cursor-move': !widgetStore.isUartViewAdded,
               'cursor-not-allowed opacity-50': widgetStore.isUartViewAdded
@@ -257,8 +257,8 @@ const drag = throttle(() => {
     const xInGrid = mouseAt.x - parentRect.left + scrollContainer.scrollLeft
     const yInGrid = mouseAt.y - parentRect.top + scrollContainer.scrollTop
 
-    let gridX = Math.round(xInGrid / (colWidth + margin[0]))
-    let gridY = Math.round(yInGrid / (rowHeight + margin[1]))
+    let gridX = Math.round(xInGrid / (colWidth + margin[0]) - dragging.value.w / 2)
+    let gridY = Math.round(yInGrid / (rowHeight + margin[1]) - dragging.value.h / 2)
 
     gridX = Math.max(0, Math.min(gridX, colNum - dragging.value.w))
     gridY = Math.max(0, gridY)
@@ -308,7 +308,7 @@ function dragEnd() {
         (item) => item.widget === textDataViewer && String(item.i) !== dropId
       )
       if (uartViewExists) {
-        globalNotify('UART View Widget can only be added once.', 'warning')
+        globalNotify(translate('widget.uartViewOnce'), 'warning')
         widgetStore.layout.splice(placeholderIndex, 1) // remove placeholder
         dragging.value = null
         return

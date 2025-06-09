@@ -37,7 +37,7 @@ export default {
         wifi: "Wi-Fi",
         about: "关于",
         uart: "UART",
-        at: "AT命令",
+        widget: "组件",
         feedback: "反馈",
         close: "关闭",
         update: "更新",
@@ -224,6 +224,7 @@ export default {
         delay: '延迟',
         addCommand: '添加命令',
         loopInterval: '循环间隔',
+        uartViewOnce: 'UART视图组件只能添加一次。'
     },
 
     common: {

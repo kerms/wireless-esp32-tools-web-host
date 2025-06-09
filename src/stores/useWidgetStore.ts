@@ -139,7 +139,7 @@ export const useWidgetStore = defineStore('widget', () => {
   const layout = ref<WidgetItem[]>(getDefaultLayout())
 
   const editCell = ref(false)
-  const editGrid = ref(true)
+  const editGrid = ref(false)
   const showOptions = ref(true)
 
   const isUartViewAdded = computed(() =>

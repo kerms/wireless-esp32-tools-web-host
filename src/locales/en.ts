@@ -37,7 +37,7 @@ export default {
         wifi: "Wi-Fi",
         about: "About",
         uart: "Uart",
-        at: "AT Command",
+        widget: "Widget",
         feedback: "Feedback",
         close: "Close",
         update: "Update",
@@ -220,6 +220,7 @@ export default {
         delay: 'Delay',
         addCommand: 'Add Command',
         loopInterval: 'Loop Interval',
+        uartViewOnce: 'UART View Widget can only be added once.'
     },
 
     common: {
