@@ -12,7 +12,7 @@
     <div v-show="store.winLeft.show && (winDataView.show || store.winRight.show)" ref="firstWinResizeRef"></div>
 
     <div v-show="winDataView.show" class="flex flex-col flex-grow overflow-hidden p-2">
-      <textDataViewer></textDataViewer>
+      <textDataViewer :showDataConfig="store.winLeft.show"></textDataViewer>
     </div>
 
     <div v-show="winDataView.show && store.winRight.show" ref="thirdWinResizeRef"></div>
@@ -82,17 +82,18 @@ import {
 
 /* TODO: use https://antoniandre.github.io/splitpanes/ */
 
+import { type ApiBinaryMsg } from '@/api/binDataDef'
+import * as df from '@/api/apiDataFlow'
+import textDataViewer from '@/views/text-data-viewer/textDataViewer.vue'
+import textDataConfig from '@/views/text-data-viewer/textDataConfig.vue'
+import { registerModule } from '@/router/msgRouter'
+import { isDevMode } from '@/composables/buildMode'
+import { useWsStore } from '@/stores/websocket'
+import { useUartStore } from '@/stores/useUartStore'
+import TextDataMacro from '@/views/text-data-viewer/textDataMacro.vue'
+import { translate } from '@/locales'
+import { useUartModule } from '@/composables/useUartModule'
 
-import {type ApiBinaryMsg} from '@/api/binDataDef';
-import * as df from '@/api/apiDataFlow';
-import textDataViewer from "@/views/text-data-viewer/textDataViewer.vue";
-import textDataConfig from "@/views/text-data-viewer/textDataConfig.vue"
-import {registerModule} from "@/router/msgRouter";
-import {isDevMode} from "@/composables/buildMode";
-import {useWsStore} from "@/stores/websocket";
-import {useUartStore} from "@/stores/useUartStore";
-import TextDataMacro from "@/views/text-data-viewer/textDataMacro.vue";
-import {translate} from "@/locales";
 
 const store = useDataViewerStore()
 const wsStore = useWsStore()
@@ -422,11 +423,7 @@ function handleWinSizeRefresh() {
 }
 
 onMounted(() => {
-  registerModule(api.WtModuleID.UART, {
-    ctrlCallback: onClientCtrl,
-    serverJsonMsgCallback: onUartJsonMsg,
-    serverBinMsgCallback: onUartBinaryMsg,
-  });
+  useUartModule()
 
   firstWinResizeRef.value.style.borderWidth = store.winLeft.borderSize + "px";
   thirdWinResizeRef.value.style.borderWidth = store.winRight.borderSize + "px";

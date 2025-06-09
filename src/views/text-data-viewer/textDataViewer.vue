@@ -7,11 +7,11 @@
         transition="none"
         width="300"
     >
-      <div v-if="!store.winLeft.show" class="h-[40vh] overflow-auto">
+      <div v-if="showDataConfig" class="h-[40vh] overflow-auto">
         <text-data-config></text-data-config>
       </div>
       <template #reference>
-        <el-link v-show="!store.winLeft.show" type="primary">
+        <el-link v-show="showDataConfig" type="primary">
           <InlineSvg name="arrow_drop_down" class="h-6 mb-1 px-2"></InlineSvg>
         </el-link>
       </template>
@@ -218,6 +218,23 @@ import TextDataConfig from "@/views/text-data-viewer/textDataConfig.vue";
 import {debouncedWatch} from "@vueuse/core";
 import {globalNotify} from "@/composables/notification";
 import {translate} from "@/locales";
+import type { DraggableComponent } from '@/types/grid'
+
+defineOptions({
+  name: 'TextDataViewer',
+  widgetIconName: 'text-data'
+})
+
+withDefaults(defineProps<{
+  editCell?: boolean
+  showDataConfig?: boolean
+}>(), {
+  editCell: false,
+  showDataConfig: true,
+})
+
+const modelValue = defineModel<DraggableComponent>({ required: false })
+
 
 const count = ref(0);
 const vuetifyVirtualScrollBarRef = ref(document.body);

@@ -1,83 +1,89 @@
 <script setup lang="ts">
-import {useWsStore} from "@/stores/websocket";
-import type {IWebsocketService} from "@/composables/websocket/websocketService";
-import {getWebsocketService} from "@/composables/websocket/websocketService";
-import {onMounted, onUnmounted} from "vue";
-import {changeFavicon} from "@/composables/importFavicon";
-import {logHelloMessage} from "@/composables/logConsoleMsg";
-import NavBar from "@/views/navigation/NavBar.vue";
-import type {ControlMsg, ServerMsg} from "@/api";
-import {ControlEvent, ControlMsgType} from "@/api";
-import {routeCtrlMsg, routeModuleServerMsg} from "@/router/msgRouter";
-import {globalNotify} from "@/composables/notification";
-import {getTrialDate, getTrialMsg, isDevMode, isOTAEnabled, isTrialMode} from "@/composables/buildMode";
-import {useSystemModule} from "@/composables/useSystemModule";
-import {useDataFlowModule} from "@/composables/useDataFlowModule";
-import {useUpdateModule} from "@/composables/useUpdateModule";
-import {ElMessageBox} from "element-plus";
+import { useWsStore } from '@/stores/websocket'
+import type { IWebsocketService } from '@/composables/websocket/websocketService'
+import { getWebsocketService } from '@/composables/websocket/websocketService'
+import { onMounted, onUnmounted } from 'vue'
+import { changeFavicon } from '@/composables/importFavicon'
+import { logHelloMessage } from '@/composables/logConsoleMsg'
+import NavBar from '@/views/navigation/NavBar.vue'
+import type { ControlMsg, ServerMsg } from '@/api'
+import { ControlEvent, ControlMsgType } from '@/api'
+import { routeCtrlMsg, routeModuleServerMsg } from '@/router/msgRouter'
+import { globalNotify } from '@/composables/notification'
+import {
+  getTrialDate,
+  getTrialMsg,
+  isDevMode,
+  isOTAEnabled,
+  isTrialMode
+} from '@/composables/buildMode'
+import { useSystemModule } from '@/composables/useSystemModule'
+import { useDataFlowModule } from '@/composables/useDataFlowModule'
+import { useUpdateModule } from '@/composables/useUpdateModule'
+import { ElMessageBox } from 'element-plus'
+import { translate } from '@/locales'
 
-const wsState = useWsStore();
+const wsState = useWsStore()
 
 const onClientCtrl = (msg: ControlMsg) => {
   if (isDevMode()) {
-    console.log("App.vue:", msg);
+    console.log('App.vue:', msg)
   }
   if (msg.type === ControlMsgType.WS_EVENT) {
-    wsState.$patch({state: msg.data as ControlEvent})
-    routeCtrlMsg(msg);
+    wsState.$patch({ state: msg.data as ControlEvent })
+    routeCtrlMsg(msg)
     if (msg.data === ControlEvent.CONNECTED) {
-      globalNotify("调试器已连接", "success");
+      globalNotify(translate('common.debuggerConnected'), 'success')
     }
   }
-};
+}
 
 const onServerMsg = (msg: ServerMsg) => {
   if (isDevMode()) {
-    console.log("App.vue:", msg);
+    console.log('App.vue:', msg)
   }
-  routeModuleServerMsg(msg);
-};
+  routeModuleServerMsg(msg)
+}
 
-let websocketService: IWebsocketService;
+let websocketService: IWebsocketService
 onMounted(() => {
-
-  logHelloMessage();
-  let host: string;
+  logHelloMessage()
+  let host: string
   if (isDevMode()) {
-    host = import.meta.env.VITE_DEVICE_HOST_NAME || "dap.local";
+    host = import.meta.env.VITE_DEVICE_HOST_NAME || 'dap.local'
   } else {
     host = window.location.host
   }
-  websocketService = getWebsocketService();
-  websocketService.init(host, onServerMsg, onClientCtrl);
-  websocketService.getSocketStatus();
-  changeFavicon();
+  if (import.meta.env.VITE_DISABLE_CONNECTION !== 'true') {
+    websocketService = getWebsocketService()
+    websocketService.init(host, onServerMsg, onClientCtrl)
+    websocketService.getSocketStatus()
+  }
+  changeFavicon()
 
-  useSystemModule();
-  useDataFlowModule();
+  useSystemModule()
+  useDataFlowModule()
 
   if (isOTAEnabled()) {
-    useUpdateModule();
+    useUpdateModule()
   }
 
   if (isTrialMode()) {
     ElMessageBox.alert(getTrialMsg(), getTrialDate(), {
-      confirmButtonText: '好的',
-    });
+      confirmButtonText: translate('common.ok')
+    })
   }
-});
+})
 
-onUnmounted(() => {
-
-});
+onUnmounted(() => {})
 </script>
 
 <template>
   <div class="flex flex-col wt-h-100">
     <header>
-      <nav-bar/>
+      <nav-bar />
     </header>
-    <RouterView/>
+    <RouterView />
   </div>
 </template>
 

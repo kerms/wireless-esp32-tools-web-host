@@ -1,18 +1,18 @@
-import {createRouter, createWebHistory, type RouteLocationNormalizedLoaded} from 'vue-router'
+import {createRouter, createWebHashHistory, type RouteLocationNormalizedLoaded} from 'vue-router'
 import Wifi from '@/views/Wifi.vue'
 import Feedback from '@/views/Feedback.vue'
 import About from '@/views/About.vue'
 import Uart from '@/views/Uart.vue'
 import Page404 from '@/views/404.vue'
 import Update from '@/views/Update.vue'
-import AtCommand from '@/views/AtCommand.vue'
+import WidgetPannel from '@/views/WidgetPannel.vue'
 import {translate} from "@/locales";
 import {isOTAEnabled} from "@/composables/buildMode";
 import {reactive, watch} from "vue";
 import {getLang} from "@/i18n";
 
 const languageState = reactive({
-    currentLanguage: getLang(), // Get the current language from your i18n setup
+    lang: getLang()
 });
 
 interface AppRouteMeta {
@@ -37,14 +37,14 @@ function updateDocumentTitle(route: RouteLocationNormalizedLoaded) {
 }
 
 // Watch for language changes to update the titles dynamically
-watch(() => languageState.currentLanguage, () => {
+watch(() => languageState.lang, () => {
     // Recompute all route meta titles
     updateMetaTitles();
     updateDocumentTitle(router.currentRoute.value);
 }, {deep: true});
 
 const router = createRouter({
-    history: createWebHistory(import.meta.env.BASE_URL),
+    history: createWebHashHistory(import.meta.env.BASE_URL),
     routes: [
         {
             path: '/',
@@ -68,9 +68,9 @@ const router = createRouter({
             meta: { titleKey: 'page.uart' },
             component: Uart,
         }, {
-            path: '/at:ext(.*)',
-            meta: { titleKey: 'page.at' },
-            component: AtCommand,
+            path: '/widget:ext(.*)',
+            meta: { titleKey: 'page.widget' },
+            component: WidgetPannel,
         }, {
             path: '/feedback:ext(.*)',
             meta: { titleKey: 'page.feedback' },
