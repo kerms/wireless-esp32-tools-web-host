@@ -4,15 +4,15 @@
   "private": true,
   "type": "module",
   "scripts": {
-    "dev": ". ./set_env.sh && vite",
-    "devh": ". ./set_env.sh && vite --host",
-    "build": "run-p type-check \"build-only {@}\" --",
-    "preview": ". ./set_env.sh && vite preview",
-    "previewh": ". ./set_env.sh && vite preview --host",
-    "build-only": ". ./set_env.sh && vite build",
-    "build:dev": ". ./set_env.sh && vite build --mode development",
+    "dev": "node scripts/gen-env.mjs",
+    "devh": "node scripts/gen-env.mjs --host",
+    "build": "run-p type-check build-only --",
+    "preview": "node scripts/gen-env.mjs preview",
+    "previewh": "node scripts/gen-env.mjs preview --host",
+    "build-only": "node scripts/gen-env.mjs build",
+    "build:dev": "NODE_ENV=development node scripts/gen-env.mjs build",
     "type-check": "vue-tsc --build --force",
-    "lint": "eslint . --ext .vue,.js,.jsx,.cjs,.mjs,.ts,.tsx,.cts,.mts --fix --ignore-path .gitignore",
+    "lint": "eslint . --ext .vue,.js,.jsx,.ts,.tsx --fix --ignore-path .gitignore",
     "format": "prettier --write src/"
   },
   "dependencies": {
