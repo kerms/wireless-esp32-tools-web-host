@@ -1,18 +1,18 @@
 <template>
   <div class="flex flex-col h-screen">
-    <div v-show="widgetStore.showOptions" class="flex h-40 overflow-y-auto m-2">
-      <div class="flex flex-col gap-2">
-        <el-checkbox v-model="widgetStore.editGrid" border class="w-full">{{
-          translate('widget.editGrid')
-        }}</el-checkbox>
-        <el-checkbox v-model="widgetStore.editCell" border class="w-full">{{
-          translate('widget.editCell')
-        }}</el-checkbox>
-      </div>
-      <div class="ml-4 flex gap-4">
+    <div v-show="widgetStore.showOptions" class="flex h-32 overflow-y-auto m-2">
+      <div class="flex gap-4">
+        <div class="flex flex-col gap-2 border-r pr-4">
+          <el-checkbox v-model="widgetStore.editGrid" border class="w-full">{{
+            translate('widget.editGrid')
+          }}</el-checkbox>
+          <el-checkbox v-model="widgetStore.editCell" border class="w-full">{{
+            translate('widget.editCell')
+          }}</el-checkbox>
+        </div>
         <div class="flex flex-col items-center">
           <div
-            class="w-40 h-24 bg-gray-200 border-2 border-dashed rounded-md p-2 flex flex-col justify-center items-center text-center cursor-move"
+            class="w-40 h-24 bg-gray-200 border-2 rounded-md p-2 flex flex-col justify-center items-center text-center cursor-move"
             draggable="true"
             @dragstart="dragStart('loop', $event)"
             @drag="drag"
@@ -27,7 +27,7 @@
         </div>
         <div class="flex flex-col items-center">
           <div
-            class="w-40 h-24 bg-gray-200 border-2 border-dashed rounded-md p-2 flex flex-col justify-center items-center text-center"
+            class="w-40 h-24 bg-gray-200 border-2 rounded-md p-2 flex flex-col justify-center items-center text-center"
             :class="{
               'cursor-move': !widgetStore.isUartViewAdded,
               'cursor-not-allowed opacity-50': widgetStore.isUartViewAdded
