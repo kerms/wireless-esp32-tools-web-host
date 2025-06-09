@@ -53,7 +53,7 @@ onMounted(() => {
   } else {
     host = window.location.host
   }
-  if (import.meta.env.VITE_DISABLE_CONNECTION === 'false') {
+  if (import.meta.env.VITE_DISABLE_CONNECTION !== 'true') {
     websocketService = getWebsocketService()
     websocketService.init(host, onServerMsg, onClientCtrl)
     websocketService.getSocketStatus()
