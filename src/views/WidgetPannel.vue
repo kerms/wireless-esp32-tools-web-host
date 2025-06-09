@@ -257,8 +257,8 @@ const drag = throttle(() => {
     const xInGrid = mouseAt.x - parentRect.left + scrollContainer.scrollLeft
     const yInGrid = mouseAt.y - parentRect.top + scrollContainer.scrollTop
 
-    let gridX = Math.round(xInGrid / (colWidth + margin[0]))
-    let gridY = Math.round(yInGrid / (rowHeight + margin[1]))
+    let gridX = Math.round(xInGrid / (colWidth + margin[0]) - dragging.value.w / 2)
+    let gridY = Math.round(yInGrid / (rowHeight + margin[1]) - dragging.value.h / 2)
 
     gridX = Math.max(0, Math.min(gridX, colNum - dragging.value.w))
     gridY = Math.max(0, gridY)
