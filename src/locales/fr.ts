@@ -201,5 +201,35 @@ export default {
         connectionSuccess: "Connexion Réussie",
         enterAPName: "Entrez le nom du AP",
         debuggerNotConnected: "Debugger non connecté",
-    }
+    },
+
+    widget: {
+        editGrid: 'Modifier la grille',
+        editCell: 'Modifier les cellules',
+        loopWidget: 'Widget Boucle',
+        loopWidgetDesc: 'Conteneur pour les séquences de commandes.',
+        addGrid: 'Ajouter à la grille',
+        dataViewer: 'Visualiseur de données',
+        dataViewerDesc: "Affiche les données texte brutes de l'UART.",
+        exportSettings: 'Exporter les paramètres',
+        importSettings: 'Importer les paramètres',
+        resetToDefault: 'Réinitialiser par défaut',
+        gridItemName: "Nom",
+        dropHere: 'Déposer ici',
+        run: 'Exécuter',
+        loop: 'Boucle',
+        delay: 'Délai',
+        addCommand: 'Ajouter une commande',
+        loopInterval: 'Intervalle de répétition',
+    },
+
+    common: {
+        debuggerConnected: 'Débogueur connecté',
+        ok: 'OK'
+    },
+
+    navbar: {
+        navigationSidebar: 'Barre latérale de navigation',
+        getSomeFries: 'Allons au quai prendre des frites',
+    },
 };

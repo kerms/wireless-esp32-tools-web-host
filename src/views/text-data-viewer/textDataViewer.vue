@@ -226,10 +226,10 @@ defineOptions({
 })
 
 withDefaults(defineProps<{
-  editGridCell?: boolean
+  editCell?: boolean
   showDataConfig?: boolean
 }>(), {
-  editGridCell: false,
+  editCell: false,
   showDataConfig: true,
 })
 

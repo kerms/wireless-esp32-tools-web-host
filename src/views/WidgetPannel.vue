@@ -2,10 +2,12 @@
   <div class="flex flex-col h-screen">
     <div v-show="widgetStore.showOptions" class="flex h-40 overflow-y-auto m-2">
       <div class="flex flex-col gap-2">
-        <el-checkbox v-model="widgetStore.editGrid" border class="w-full">Edit Grid</el-checkbox>
-        <el-checkbox v-model="widgetStore.editGridCell" border class="w-full"
-          >Edit Grid Cell</el-checkbox
-        >
+        <el-checkbox v-model="widgetStore.editGrid" border class="w-full">{{
+          translate('widget.editGrid')
+        }}</el-checkbox>
+        <el-checkbox v-model="widgetStore.editCell" border class="w-full">{{
+          translate('widget.editCell')
+        }}</el-checkbox>
       </div>
       <div class="ml-4 flex gap-4">
         <div class="flex flex-col items-center">
@@ -16,12 +18,12 @@
             @drag="drag"
             @dragend="dragEnd"
           >
-            <span class="font-bold">Loop Widget</span>
-            <p class="text-xs">Container for command sequences.</p>
+            <span class="font-bold">{{ translate('widget.loopWidget') }}</span>
+            <p class="text-xs">{{ translate('widget.loopWidgetDesc') }}</p>
           </div>
-          <el-button @click="widgetStore.addLoopWidget" size="small" class="w-full mt-1"
-            >Add to Grid</el-button
-          >
+          <el-button @click="widgetStore.addLoopWidget" size="small" class="w-full mt-1">{{
+            translate('widget.addGrid')
+          }}</el-button>
         </div>
         <div class="flex flex-col items-center">
           <div
@@ -35,28 +37,32 @@
             @drag="drag"
             @dragend="dragEnd"
           >
-            <span class="font-bold">Data Viewer</span>
-            <p class="text-xs">Displays raw text data from UART.</p>
+            <span class="font-bold">{{ translate('widget.dataViewer') }}</span>
+            <p class="text-xs">{{ translate('widget.dataViewerDesc') }}</p>
           </div>
           <el-button
             @click="widgetStore.addUartViewWidget"
             size="small"
             class="w-full mt-1"
             :disabled="widgetStore.isUartViewAdded"
-            >Add to Grid</el-button
+            >{{ translate('widget.addGrid') }}</el-button
           >
         </div>
         <div class="flex flex-col items-start gap-2 border-l pl-4">
           <div>
-            <el-button @click="widgetStore.exportSettings" size="small">Export Settings</el-button>
+            <el-button @click="widgetStore.exportSettings" size="small">{{
+              translate('widget.exportSettings')
+            }}</el-button>
           </div>
           <div>
-            <el-button @click="widgetStore.importSettings" size="small">Import Settings</el-button>
+            <el-button @click="widgetStore.importSettings" size="small">{{
+              translate('widget.importSettings')
+            }}</el-button>
           </div>
           <div>
-            <el-button type="danger" @click="widgetStore.resetToDefault" size="small"
-              >Reset to Default</el-button
-            >
+            <el-button type="danger" @click="widgetStore.resetToDefault" size="small">{{
+              translate('widget.resetToDefault')
+            }}</el-button>
           </div>
         </div>
       </div>
@@ -98,7 +104,11 @@
                 </el-button>
                 <div :id="`tp-widget-before-${item.i}`"></div>
                 <div v-if="widgetStore.editGrid" class="w-full">
-                  <el-input v-model="item.name" size="small" placeholder="Grid Item name" />
+                  <el-input
+                    v-model="item.name"
+                    size="small"
+                    :placeholder="translate('widget.gridItemName')"
+                  />
                 </div>
                 <div
                   v-else-if="item.name"
@@ -125,12 +135,12 @@
                 <component
                   :is="item.widget"
                   v-model="widgetStore.layout[index]"
-                  :editGridCell="widgetStore.editGridCell"
+                  :editCell="widgetStore.editCell"
                 />
               </div>
             </template>
             <div v-else class="flex justify-center items-center h-full">
-              <p class="font-bold text-white">Drop here</p>
+              <p class="font-bold text-white">{{ translate('widget.dropHere') }}</p>
             </div>
           </grid-item>
         </GridLayout>
@@ -142,7 +152,7 @@
       :checked="widgetStore.showOptions"
       type="primary"
       @click="widgetStore.showOptions = !widgetStore.showOptions"
-      >Edit Grid</ElCheckTag
+      >{{ translate('widget.editGrid') }}</ElCheckTag
     >
   </teleport>
 </template>
@@ -158,6 +168,7 @@ import { useUartModule } from '@/composables/useUartModule'
 import { globalNotify } from '@/composables/notification'
 import { useWidgetStore } from '@/stores/useWidgetStore'
 import type { WidgetItem } from '@/types/grid'
+import { translate } from '@/locales'
 
 const widgetStore = useWidgetStore()
 

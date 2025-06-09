@@ -6,7 +6,7 @@ import type { DraggableComponent } from '../../types/grid'
 /* ---------------- props & model ----------------------------------- */
 const modelValue = defineModel<DraggableComponent[]>({ required: true })
 defineProps<{
-  editGridCell: boolean
+  editCell: boolean
 }>()
 
 /* optional helper if you still need cloning */
@@ -31,7 +31,7 @@ function rawClone(item: DraggableComponent): DraggableComponent {
       :key="row.id"
       :is="row.componentType"
       v-model:modelValue="row.props"
-      :is-editing-cell="editGridCell"
+      :is-editing-cell="editCell"
     />
   </VueDraggable>
 </template>

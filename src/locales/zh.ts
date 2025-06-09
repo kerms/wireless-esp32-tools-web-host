@@ -143,7 +143,7 @@ export default {
         autoUpdate: "自动刷新",
         tempDisplayTooltip: "未满足断帧规则的数据（如：未超时），暂时实时显示在此区域。超过8192字节，自动断帧；",
         loopSend: "循环发送",
-        loopSendTooltip: "实际频率受界面刷新率影响，如需要更精确，可以尝试关闭‘自动刷新’",
+        loopSendTooltip: "实际频率受界面刷新率影响，如需要更精确，可以尝试关闭'自动刷新'",
         sendFormat: "发送格式",
         cachedFrame: "缓存帧数",
         format: "格式化",
@@ -204,5 +204,35 @@ export default {
         connectionSuccess: "连接成功",
         enterAPName: "请输入AP名",
         debuggerNotConnected: "调试器未连接",
-    }
+    },
+
+    widget: {
+        editGrid: '编辑网格',
+        editCell: '编辑单元',
+        loopWidget: '循环小部件',
+        loopWidgetDesc: '用于命令序列的容器。',
+        addGrid: '添加到网格',
+        dataViewer: '数据显示器',
+        dataViewerDesc: '显示来自UART的原始文本数据。',
+        exportSettings: '导出设置',
+        importSettings: '导入设置',
+        resetToDefault: '重置',
+        gridItemName: '组件名称',
+        dropHere: '在此处放置',
+        run: '运行',
+        loop: '循环',
+        delay: '延迟',
+        addCommand: '添加命令',
+        loopInterval: '循环间隔',
+    },
+
+    common: {
+        debuggerConnected: '调试器已连接',
+        ok: '好的'
+    },
+
+    navbar: {
+        navigationSidebar: '导航侧栏',
+        getSomeFries: '走，去码头整点薯条',
+    },
 }

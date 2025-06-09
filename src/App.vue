@@ -21,6 +21,7 @@ import { useSystemModule } from '@/composables/useSystemModule'
 import { useDataFlowModule } from '@/composables/useDataFlowModule'
 import { useUpdateModule } from '@/composables/useUpdateModule'
 import { ElMessageBox } from 'element-plus'
+import { translate } from '@/locales'
 
 const wsState = useWsStore()
 
@@ -32,7 +33,7 @@ const onClientCtrl = (msg: ControlMsg) => {
     wsState.$patch({ state: msg.data as ControlEvent })
     routeCtrlMsg(msg)
     if (msg.data === ControlEvent.CONNECTED) {
-      globalNotify('调试器已连接', 'success')
+      globalNotify(translate('common.debuggerConnected'), 'success')
     }
   }
 }
@@ -69,7 +70,7 @@ onMounted(() => {
 
   if (isTrialMode()) {
     ElMessageBox.alert(getTrialMsg(), getTrialDate(), {
-      confirmButtonText: '好的'
+      confirmButtonText: translate('common.ok')
     })
   }
 })

@@ -11,12 +11,11 @@ import { globalNotify } from '@/composables/notification'
 import { isDevMode } from '@/composables/buildMode'
 import { useSequentialUart } from '@/composables/useSequentialUart'
 import { useCommandLoopManager } from '@/composables/useCommandLoopManager'
+import { translate } from '@/locales'
 
 /* ---------------- props & model ----------------------------------- */
 const modelValue = defineModel<WidgetItem>({ required: true })
-defineProps<{
-  editGridCell: boolean
-}>()
+const editCell = defineModel<boolean>('editCell', { required: true })
 
 defineOptions({
   name: 'WidgetLoop',
@@ -175,17 +174,17 @@ onMounted(() => {
       @add="ensureUniqueId"
     >
       <div v-for="row in modelValue.widgetProps" :key="row.id" class="flex flex-row items-center">
-        <el-tag v-if="editGridCell" size="large" type="success" class="drag-handle cursor-move">
+        <el-tag v-if="editCell" size="large" type="success" class="drag-handle cursor-move">
           =
         </el-tag>
         <component
           :is="row.componentType"
           v-model:modelValue="row.props"
-          :is-editing-cell="editGridCell"
+          :editCell="editCell"
           class="flex-1"
         />
         <el-button
-          v-if="editGridCell"
+          v-if="editCell"
           type="danger"
           size="small"
           @click="deleteItem(row.id)"
@@ -195,19 +194,18 @@ onMounted(() => {
         </el-button>
       </div>
     </VueDraggable>
-    <div v-if="editGridCell" class="bg-gray-50 flex gap-1">
-      <el-button type="primary" size="small" @click="handleAddItem"> Add Item </el-button>
+    <div v-if="editCell" class="bg-gray-50 flex gap-1">
+      <el-button type="primary" size="small" @click="handleAddItem">{{ translate('widget.addCommand') }}</el-button>
       <div>
         <el-popover
           placement="top-start"
           trigger="hover"
           :show-after="1000"
-          content="循环执行间隔"
+          :content="translate('widget.loopInterval')"
         >
           <template #reference>
             <el-input
                 v-model="intervalMS"
-                :placeholder="'间隔'+'(ms)'"
                 size="small"
                 type="number"
                 :min="0"
