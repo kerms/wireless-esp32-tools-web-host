@@ -200,6 +200,36 @@ export default {
         connectionSuccess: "Connection Successful",
         enterAPName: "Entre the AP name",
         debuggerNotConnected: "Debugger not connected",
-    }
+    },
 
+    widget: {
+        editGrid: 'Edit Grid',
+        editCell: 'Edit Cell',
+        loopWidget: 'Loop Widget',
+        loopWidgetDesc: 'Container for command sequences.',
+        addGrid: 'Add to Grid',
+        dataViewer: 'Data Viewer',
+        dataViewerDesc: 'Displays raw text data from UART.',
+        exportSettings: 'Export Settings',
+        importSettings: 'Import Settings',
+        resetToDefault: 'Reset to Default',
+        gridItemName: 'Widget name',
+        dropHere: 'Drop here',
+        run: 'Run',
+        loop: 'Loop',
+        delay: 'Delay',
+        addCommand: 'Add Command',
+        loopInterval: 'Loop Interval',
+        uartViewOnce: 'UART View Widget can only be added once.'
+    },
+
+    common: {
+        debuggerConnected: 'Debugger connected',
+        ok: 'OK'
+    },
+
+    navbar: {
+        navigationSidebar: 'Navigation Sidebar',
+        getSomeFries: "Let's go to the dock and get some fries",
+    },
 };

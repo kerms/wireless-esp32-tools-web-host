@@ -1,6 +1,6 @@
 <template>
   <div ref="rootEl" class="p-1 bg-white text-xs border-b-2">
-    <div v-if="props.editGridCell">
+    <div v-if="props.editCell">
       <div>
         <div class="mb-1">
           <el-input v-model="model.label" placeholder="Label" size="small">
@@ -49,7 +49,7 @@ interface UartCommandData {
 }
 
 const props = defineProps({
-  editGridCell: {
+  editCell: {
     type: Boolean,
     default: false
   }

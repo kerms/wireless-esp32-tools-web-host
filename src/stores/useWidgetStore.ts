@@ -138,7 +138,7 @@ const throttle = (fn: Function, wait: number) => {
 export const useWidgetStore = defineStore('widget', () => {
   const layout = ref<WidgetItem[]>(getDefaultLayout())
 
-  const editGridCell = ref(false)
+  const editCell = ref(false)
   const editGrid = ref(true)
   const showOptions = ref(true)
 
@@ -150,13 +150,13 @@ export const useWidgetStore = defineStore('widget', () => {
     () => editGrid.value,
     (newValue) => {
       if (newValue) {
-        editGridCell.value = false
+        editCell.value = false
       }
     }
   )
 
   watch(
-    () => editGridCell.value,
+    () => editCell.value,
     (newValue) => {
       if (newValue) {
         editGrid.value = false
@@ -410,7 +410,7 @@ export const useWidgetStore = defineStore('widget', () => {
   return {
     layout,
     editGrid,
-    editGridCell,
+    editCell,
     showOptions,
     isUartViewAdded,
     addLoopWidget,

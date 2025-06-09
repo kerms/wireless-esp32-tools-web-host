@@ -3,13 +3,13 @@
     <div class="flex">
       <button @click.prevent="sideMenuOpen=true" class="flex items-center hover:text-blue-600 pl-1 mx-2 sm:mx-4">
         <svg class="block h-3 lg:h-4 lg:w-4 fill-current" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg">
-          <title>导航侧栏</title>
+          <title>{{ translate('navbar.navigationSidebar') }}</title>
           <path d="M0 3h20v2H0V3zm0 6h20v2H0V9zm0 6h20v2H0v-2z"></path>
         </svg>
         <el-badge v-if="updateStore.canUpdate" is-dot></el-badge>
       </button>
 
-      <router-link to="/" class="text-3xl px-4 font-bold leading-none hidden items-center sm:flex" title="走，去码头整点薯条">
+      <router-link to="/" class="text-3xl px-4 font-bold leading-none hidden items-center sm:flex" :title="translate('navbar.getSomeFries')">
         <InlineSvg name="favicon" class="h-5 lg:h-8"></InlineSvg>
       </router-link>
 
